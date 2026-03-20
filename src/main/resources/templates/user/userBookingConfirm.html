@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Confirm Your Booking</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'neon-cyan': '#00ffff',
+                        'neon-purple': '#8b5cf6',
+                        'neon-green': '#10b981',
+                        'dark-bg': '#0a0a0a',
+                        'dark-secondary': '#1a1a1a',
+                        'dark-tertiary': '#2a2a2a'
+                    },
+                    fontFamily: {
+                        'orbitron': ['Orbitron', 'monospace'],
+                        'rajdhani': ['Rajdhani', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{'/css/style.css'}">
+    <link rel="stylesheet" th:href="@{'/css/booking-enhanced.css'}">
+</head>
+<body class="bg-dark-bg text-white font-rajdhani flex items-center justify-center min-h-screen">
+
+<div class="glass-effect p-8 rounded-xl border border-neon-cyan/20 w-full max-w-lg mx-4">
+    <div class="text-center mb-6">
+        <h1 class="font-orbitron text-3xl font-bold text-glow text-neon-cyan">Confirm Your Slot</h1>
+        <div class="countdown-box mt-3">
+            <p id="countdown" class="text-yellow-400 font-semibold">
+                Your slot is held for <span class="font-bold countdown-time">10:00</span>
+            </p>
+        </div>
+    </div>
+
+    <div class="booking-summary bg-dark-secondary rounded-lg p-4 mb-6 border border-dark-tertiary">
+        <h2 class="font-orbitron text-lg font-bold text-neon-purple mb-3 section-title">Booking Summary</h2>
+        <div class="space-y-2 text-gray-300">
+            <div class="summary-row flex justify-between">
+                <span>Cafe:</span> 
+                <span class="font-bold text-white" th:text="${booking.slot.pc.cafe.name}">Game Cafe</span>
+            </div>
+            <div class="summary-row flex justify-between">
+                <span>PC / Seat:</span> 
+                <span class="font-bold text-white" th:text="${booking.slot.pc.seatNumber}">1</span>
+            </div>
+            <div class="summary-row flex justify-between">
+                <span>Date:</span> 
+                <span class="font-bold text-white" th:text="${#temporals.format(booking.bookingDate, 'dd-MMM-yyyy')}">18-Sep-2025</span>
+            </div>
+            <div class="summary-row flex justify-between">
+                <span>Time:</span> 
+                <span class="font-bold text-white" th:text="${#temporals.format(booking.startTime, 'hh:mm a')} + ' - ' + ${#temporals.format(booking.endTime, 'hh:mm a')}">12:00 PM - 01:00 PM</span>
+            </div>
+        </div>
+    </div>
+
+    <form th:action="@{/payments/create-checkout}" method="post">
+        
+        <input type="hidden" name="bookingId" th:value="${booking.id}" />
+
+        <div class="space-y-4">
+            <div class="form-group">
+                <label for="name" class="form-label block text-sm font-medium text-gray-400 mb-1">Full Name</label>
+                <input type="text" id="name" name="customerName" class="form-input w-full bg-dark-tertiary border border-dark-tertiary focus:border-neon-cyan focus:ring-neon-cyan rounded-lg p-3" required>
+            </div>
+            <div class="form-group">
+                <label for="email" class="form-label block text-sm font-medium text-gray-400 mb-1">Email for Reminders</label>
+                <input type="email" id="email" name="customerEmail" class="form-input w-full bg-dark-tertiary border border-dark-tertiary focus:border-neon-cyan focus:ring-neon-cyan rounded-lg p-3" required>
+            </div>
+            <div class="form-group">
+                <label for="phone" class="form-label block text-sm font-medium text-gray-400 mb-1">Phone Number (Optional)</label>
+                <input type="tel" id="phone" name="customerPhone" class="form-input w-full bg-dark-tertiary border border-dark-tertiary focus:border-neon-cyan focus:ring-neon-cyan rounded-lg p-3">
+            </div>
+        </div>
+        
+        <!-- <div class="form-group">
+                <label for="ageGroup" class="form-label block text-sm font-medium text-gray-400 mb-1">
+                    Age Group 
+                    <span class="text-neon-cyan text-xs ml-1">(for analytics & age-appropriate recommendations)</span>
+                </label>
+                <select id="ageGroup" name="customerAgeGroup" class="form-input w-full bg-dark-tertiary border border-dark-tertiary focus:border-neon-cyan focus:ring-neon-cyan rounded-lg p-3" required>
+                    <option value="" disabled selected class="text-gray-500">Select your age group</option>
+                    <option value="CHILD" class="bg-dark-tertiary text-white"> Child (Under 13)</option>
+                    <option value="TEEN" class="bg-dark-tertiary text-white"> Teen (13-17)</option>
+                    <option value="YOUNG_ADULT" class="bg-dark-tertiary text-white"> Young Adult (18-25)</option>
+                    <option value="ADULT" class="bg-dark-tertiary text-white"> Adult (26-35)</option>
+                    <option value="MIDDLE_AGED" class="bg-dark-tertiary text-white"> Middle-aged (36-50)</option>
+                    <option value="SENIOR" class="bg-dark-tertiary text-white"> Senior (50+)</option>
+                </select>
+                <div class="mt-1 text-xs text-gray-500">
+                    💡 This helps us recommend age-appropriate games and improve our services
+                </div>
+            </div>
+        </div> -->
+
+        <div class="space-y-4 mt-6">
+            <label class="form-label block text-sm font-medium text-gray-400 mb-2">Select Your Favorite Games (Optional)</label>
+            
+            <div id="selected-games-container" class="flex flex-wrap gap-2 mb-4">
+            </div>
+            
+            <input 
+                type="text" 
+                id="game-search-input" 
+                placeholder="Type to search for games..." 
+                class="form-input w-full bg-dark-tertiary border border-dark-tertiary focus:border-neon-cyan focus:ring-neon-cyan rounded-lg p-3"
+            >
+            
+            <div id="game-suggestions-container" class="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-2">
+            </div>
+        </div>
+
+        <input type="hidden" name="preferredGames" id="preferred-games-hidden-input">
+
+        <div class="mt-8">
+            <button type="submit" class="btn-gaming w-full py-3 rounded-lg font-semibold text-lg hover:scale-105">
+                Proceed to Payment
+            </button>
+        </div>
+    </form>
+</div>
+
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    // Get the exact expiration timestamp from the server model
+    const expirationTime = /*[[${booking.expirationTime}]]*/ '2025-09-18T12:00:00';
+    const countdownElement = document.getElementById('countdown');
+    
+    const interval = setInterval(() => {
+        // Continuously calculate the difference between now and the expiration time
+        const now = new Date();
+        const expiration = new Date(expirationTime);
+        const diff = expiration - now;
+        
+        // If the difference is zero or less, the hold has expired
+        if (diff <= 0) {
+            clearInterval(interval);
+            countdownElement.innerHTML = 'Your hold has expired. Please book again.';
+            countdownElement.classList.remove('text-yellow-400');
+            countdownElement.classList.add('text-red-500');
+            // Disable the pay button
+            document.querySelector('button[type="submit"]').disabled = true;
+            return;
+        }
+
+        // Calculate the remaining minutes and seconds from the difference
+        const minutes = Math.floor((diff / 1000 / 60) % 60);
+        const seconds = Math.floor((diff / 1000) % 60);
+
+        // Update the display
+        countdownElement.innerHTML = `Your slot is held for <span class="font-bold">${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}</span>`;
+    }, 1000); // Run this function every second
+    /*]]>*/
+
+    // --- NEW JAVASCRIPT FOR DYNAMIC GAME SELECTION ---
+    const gameSearchInput = document.getElementById('game-search-input');
+    const selectedGamesContainer = document.getElementById('selected-games-container');
+    const gameSuggestionsContainer = document.getElementById('game-suggestions-container');
+    const preferredGamesHiddenInput = document.getElementById('preferred-games-hidden-input');
+
+    let allGames = [];
+    let selectedGames = new Set();
+
+    // 1. Fetch all games from the backend API
+    async function fetchGames() {
+        try {
+            const response = await fetch('/api/games');
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const data = await response.json();
+            allGames = data.map(game => game.name); // Store just the game names
+        } catch (error) {
+            console.error('Failed to fetch games:', error);
+            // Fallback for production: Maybe show a static list or a message
+        }
+    }
+
+    // 2. Filter and display suggestions
+    function renderSuggestions(query) {
+        gameSuggestionsContainer.innerHTML = ''; // Clear old suggestions
+        const filteredGames = allGames.filter(game =>
+            game.toLowerCase().includes(query.toLowerCase()) && !selectedGames.has(game)
+        ).slice(0, 10); // Limit to top 10 suggestions
+
+        filteredGames.forEach(gameName => {
+            const button = document.createElement('button');
+            button.className = 'suggestion-tag text-white bg-dark-secondary px-3 py-1 rounded-full text-xs font-semibold hover:bg-neon-purple/20 transition-colors duration-200';
+            button.textContent = gameName;
+            button.dataset.gameName = gameName;
+            gameSuggestionsContainer.appendChild(button);
+        });
+    }
+
+    // 3. Handle selection of a game
+    function addGame(gameName) {
+        if (!selectedGames.has(gameName)) {
+            selectedGames.add(gameName);
+            renderSelectedGames(); // Redraw the selected games
+            updateHiddenInput(); // Update the hidden form field
+            gameSearchInput.value = ''; // Clear the input field
+            renderSuggestions(''); // Clear the suggestions
+        }
+    }
+
+    // 4. Handle deselection of a game
+    function removeGame(gameName) {
+        selectedGames.delete(gameName);
+        renderSelectedGames(); // Redraw the selected games
+        updateHiddenInput(); // Update the hidden form field
+        renderSuggestions(gameSearchInput.value); // Re-render suggestions
+    }
+
+    // 5. Render the selected games
+    function renderSelectedGames() {
+        selectedGamesContainer.innerHTML = '';
+        selectedGames.forEach(gameName => {
+            const tag = document.createElement('span');
+            tag.className = 'selected-tag inline-flex items-center bg-neon-purple text-white text-xs font-medium px-2.5 py-0.5 rounded-full';
+            tag.innerHTML = `
+                ${gameName}
+                <button type="button" class="remove-game-btn ml-1" data-game-name="${gameName}">
+                    <svg class="w-2 h-2 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                    </svg>
+                </button>
+            `;
+            selectedGamesContainer.appendChild(tag);
+        });
+    }
+
+    // 6. Update the hidden input field for form submission
+    function updateHiddenInput() {
+        preferredGamesHiddenInput.value = Array.from(selectedGames).join(',');
+    }
+
+    // EVENT LISTENERS
+    // Listen for input in the search field
+    gameSearchInput.addEventListener('input', (e) => {
+        const query = e.target.value;
+        renderSuggestions(query);
+    });
+
+    // Listen for clicks on the suggestion tags
+    gameSuggestionsContainer.addEventListener('click', (e) => {
+        if (e.target.tagName === 'BUTTON' && e.target.classList.contains('suggestion-tag')) {
+            addGame(e.target.dataset.gameName);
+        }
+    });
+
+    // Listen for clicks on the remove buttons for selected games
+    selectedGamesContainer.addEventListener('click', (e) => {
+        const removeBtn = e.target.closest('.remove-game-btn');
+        if (removeBtn) {
+            removeGame(removeBtn.dataset.gameName);
+        }
+    });
+    
+    // Initial fetch of games when the page loads
+    fetchGames();
+
+    /*]]>*/
+</script>
+
+</body>
+</html>
+
+
+
+
+<!-- <!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Confirm Your Booking</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" th:href="@{'/css/style.css'}"> 
+</head>
+<body class="bg-dark-bg text-white font-rajdhani flex items-center justify-center min-h-screen">
+
+<div class="glass-effect p-8 rounded-xl border border-neon-cyan/20 w-full max-w-lg mx-4">
+    <div class="text-center mb-6">
+        <h1 class="font-orbitron text-3xl font-bold text-glow text-neon-cyan">Confirm Your Slot</h1>
+        <p id="countdown" class="text-yellow-400 mt-2 font-semibold">
+            Your slot is held for <span class="font-bold">10:00</span>
+        </p>
+    </div>
+
+    <div class="bg-dark-secondary rounded-lg p-4 mb-6 border border-dark-tertiary">
+        <h2 class="font-orbitron text-lg font-bold text-neon-purple mb-3">Booking Summary</h2>
+        <div class="space-y-2 text-gray-300">
+            <div class="flex justify-between"><span>Cafe:</span> <span class="font-bold text-white" th:text="${booking.slot.pc.cafe.name}">Game Cafe</span></div>
+            <div class="flex justify-between"><span>PC / Seat:</span> <span class="font-bold text-white" th:text="${booking.slot.pc.seatNumber}">1</span></div>
+            <div class="flex justify-between"><span>Date:</span> <span class="font-bold text-white" th:text="${#temporals.format(booking.bookingDate, 'dd-MMM-yyyy')}">18-Sep-2025</span></div>
+            <div class="flex justify-between"><span>Time:</span> <span class="font-bold text-white" th:text="${#temporals.format(booking.startTime, 'hh:mm a')} + ' - ' + ${#temporals.format(booking.endTime, 'hh:mm a')}">12:00 PM - 01:00 PM</span></div>
+        </div>
+    </div>
+
+    <form th:action="@{/payments/create-checkout}" method="post">
+        
+        <input type="hidden" name="bookingId" th:value="${booking.id}" />
+
+        <div class="space-y-4">
+            <div>
+                <label for="name" class="block text-sm font-medium text-gray-400 mb-1">Full Name</label>
+                <input type="text" id="name" name="customerName" class="w-full bg-dark-tertiary border border-dark-tertiary focus:border-neon-cyan focus:ring-neon-cyan rounded-lg p-2" required>
+            </div>
+            <div>
+                <label for="email" class="block text-sm font-medium text-gray-400 mb-1">Email for Reminders</label>
+                <input type="email" id="email" name="customerEmail" class="w-full bg-dark-tertiary border border-dark-tertiary focus:border-neon-cyan focus:ring-neon-cyan rounded-lg p-2" required>
+            </div>
+            <div>
+                <label for="phone" class="block text-sm font-medium text-gray-400 mb-1">Phone Number (Optional)</label>
+                <input type="tel" id="phone" name="customerPhone" class="w-full bg-dark-tertiary border border-dark-tertiary focus:border-neon-cyan focus:ring-neon-cyan rounded-lg p-2">
+            </div>
+        </div>
+        <div class="space-y-4 mt-6">
+    <label class="block text-sm font-medium text-gray-400 mb-2">Select Your Favorite Games (Optional)</label>
+    
+    <div id="selected-games-container" class="flex flex-wrap gap-2 mb-4">
+        </div>
+        
+        <input 
+            type="text" 
+            id="game-search-input" 
+            placeholder="Type to search for games..." 
+            class="w-full bg-dark-tertiary border border-dark-tertiary focus:border-neon-cyan focus:ring-neon-cyan rounded-lg p-2"
+        >
+        
+        <div id="game-suggestions-container" class="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-2">
+            </div>
+    </div>
+
+    <input type="hidden" name="preferredGames" id="preferred-games-hidden-input">
+
+        <div class="mt-8">
+            <button type="submit" class="w-full btn-gaming py-3 rounded-lg font-semibold text-lg hover:scale-105">
+                Proceed to Payment
+            </button>
+        </div>
+    </form>
+</div> -->

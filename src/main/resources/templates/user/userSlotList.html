@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Available Slots - PC <span th:text="${pcId}"></span></title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'neon-cyan': '#00ffff',
+                        'neon-purple': '#8b5cf6',
+                        'neon-green': '#10b981',
+                        'dark-bg': '#0a0a0a',
+                        'dark-secondary': '#1a1a1a',
+                        'dark-tertiary': '#2a2a2a'
+                    },
+                    animation: {
+                        'glow': 'glow 2s ease-in-out infinite alternate',
+                        'float': 'float 3s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        glow: {
+                            '0%': { boxShadow: '0 0 5px #00ffff, 0 0 10px #00ffff, 0 0 15px #00ffff' },
+                            '100%': { boxShadow: '0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 30px #00ffff' }
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-10px)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <link rel="stylesheet" th:href="@{'/css/style.css'}">
+</head>
+<body class="bg-dark-bg text-white font-rajdhani overflow-x-hidden">
+
+<!-- Floating Particles -->
+<div class="fixed inset-0 pointer-events-none z-0">
+    <div class="particle w-1 h-1" style="left: 10%; animation-delay: 0s;"></div>
+    <div class="particle w-2 h-2" style="left: 20%; animation-delay: 1s;"></div>
+    <div class="particle w-1 h-1" style="left: 30%; animation-delay: 2s;"></div>
+    <div class="particle w-2 h-2" style="left: 40%; animation-delay: 3s;"></div>
+    <div class="particle w-1 h-1" style="left: 50%; animation-delay: 4s;"></div>
+    <div class="particle w-2 h-2" style="left: 60%; animation-delay: 5s;"></div>
+    <div class="particle w-1 h-1" style="left: 70%; animation-delay: 0.5s;"></div>
+    <div class="particle w-2 h-2" style="left: 80%; animation-delay: 1.5s;"></div>
+    <div class="particle w-1 h-1" style="left: 90%; animation-delay: 2.5s;"></div>
+</div>
+
+<!-- Navigation -->
+<nav class="fixed top-0 w-full bg-dark-secondary/90 backdrop-blur-md border-b border-neon-cyan/20 z-50">
+    <div class="container mx-auto px-6 py-4">
+        <div class="flex items-center justify-between">
+            <a th:href="@{'/landing'}" class="flex items-center space-x-2">
+                <div class="w-10 h-10 bg-gradient-to-r from-neon-purple to-neon-cyan rounded-lg flex items-center justify-center animate-glow">
+                    <span class="font-orbitron font-bold text-lg">PS</span>
+                </div>
+                <span class="font-orbitron font-bold text-xl text-glow-1 text-neon-cyan">Smart PS Lounge</span>
+            </a>
+
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="/landing#home" class="hover:text-neon-cyan transition-colors duration-300">Home</a>
+                <a href="/landing#gamers" class="hover:text-neon-cyan transition-colors duration-300">For Gamers</a>
+                <a href="/landing#owners" class="hover:text-neon-cyan transition-colors duration-300">For Owners</a>
+                <a href="/landing#analytics" class="hover:text-neon-cyan transition-colors duration-300">Analytics</a>
+            </div>
+
+            <div class="flex items-center space-x-4">
+                <button onclick="history.back()" class="btn-gaming px-6 py-2 text-white font-semibold rounded-lg">
+                    Back
+                </button>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Cafe Header -->
+<header class="pt-32 pb-16 bg-dark-secondary text-center relative overflow-hidden">
+    <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1598550476439-6847785f554e?q=80&w=1974&auto=format&fit=crop'); opacity: 0.2;"></div>
+    <div class="relative">
+        <h1 class="font-orbitron text-5xl font-bold text-glow text-neon-purple">Available Time Slots</h1>
+        <p class="text-gray-400 mt-2 text-lg">PC <span th:text="${pcId}" class="text-neon-cyan font-bold"></span></p>
+    </div>
+</header>
+
+<div th:if="${errorMessage}" class="container mx-auto -mt-8 mb-4 px-6">
+    <div class="bg-red-500/20 border border-red-500 text-red-400 px-4 py-3 rounded-lg relative" role="alert">
+        <strong class="font-bold">Oops!</strong>
+        <span class="block sm:inline" th:text="${errorMessage}">Slot could not be booked.</span>
+    </div>
+</div>
+
+<!-- main content -->
+ <main class="container mx-auto px-6 py-12 relative z-10">
+    <div class="max-w-6xl mx-auto">
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            <div th:each="slot : ${slots}">
+                <div th:each="startTime : ${slot.startTime}">
+
+                    <form th:action="@{/bookings/create-hold}" method="post" class="w-full">
+                        
+                        <input type="hidden" name="pcId" th:value="${slot.pcId}" />
+                        <input type="hidden" name="slotId" th:value="${slot.id}" />
+                        <input type="hidden" name="startTime" th:value="${#temporals.format(startTime, 'HH:mm')}" />
+                        
+                        <button type="submit" 
+                                class="w-full py-3 rounded-lg font-semibold transition-all duration-300 glass-effect border-2"
+                                th:classappend="${slot.booked} ? 'bg-gray-600/50 cursor-not-allowed border-red-500/30 text-gray-400' : 'btn-gaming border-neon-green/30 hover:border-neon-green hover:scale-105'"
+                                th:disabled="${slot.booked}">
+                            
+                            <div class="text-center">
+                                <div class="text-sm font-bold text-neon-cyan">
+                                    <span th:text="${#temporals.format(startTime, 'HH:mm')}"></span>
+                                </div>
+                                <div class="text-xs text-gray-400">to</div>
+                                <div class="text-sm font-bold text-neon-cyan">
+                                    <span th:text="${#temporals.format(slot.endTime, 'HH:mm')}"></span>
+                                </div>
+                                
+                                <div class="text-xs mt-2">
+                                    <span th:if="${!slot.booked}" class="text-neon-green">Available</span>
+                                    <span th:if="${slot.booked}" class="text-red-400">Booked</span>
+                                </div>
+                            </div>
+                        </button>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+        </div>
+    </main>
+
+        <!-- Empty State -->
+        <div th:if="${#lists.isEmpty(slots)}" class="text-center py-16">
+            <div class="text-6xl mb-4">🎮</div>
+            <h2 class="text-2xl font-bold text-gray-400 mb-2">No Slots Available</h2>
+            <p class="text-gray-500">Please check back later or try a different PC.</p>
+            <button onclick="history.back()" class="mt-4 btn-gaming px-6 py-2 rounded-lg">
+                Go Back
+            </button>
+        </div>
+    </div>
+</main>
+
+<!-- Footer -->
+<footer class="bg-dark-secondary border-t border-neon-cyan/20 py-12">
+    <div class="container mx-auto px-6">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <!-- Logo and Description -->
+            <div class="col-span-1 md:col-span-2">
+                <div class="flex items-center space-x-2 mb-4">
+                    <div class="w-10 h-10 bg-gradient-to-r from-neon-purple to-neon-cyan rounded-lg flex items-center justify-center animate-glow">
+                        <span class="font-orbitron font-bold text-lg">PS</span>
+                    </div>
+                    <span class="font-orbitron font-bold text-xl text-glow-1 text-neon-cyan">Smart PS Lounge</span>
+                </div>
+                <p class="text-gray-400 mb-6 max-w-md">
+                    The ultimate gaming destination where players come together to compete, connect, and conquer.
+                    Experience high-performance gaming with seamless booking and community events.
+                </p>
+
+                <!-- Contact Details -->
+                <div class="space-y-2 mb-6">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-neon-cyan">📍</span>
+                        <span class="text-gray-400">123 Gaming Street, Tech City, TC 12345</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-neon-cyan">📞</span>
+                        <span class="text-gray-400">+1 (555) 123-GAME</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-neon-cyan">✉️</span>
+                        <span class="text-gray-400">info@gamehub.com</span>
+                    </div>
+                </div>
+
+                <!-- Social Media Links -->
+                <div class="flex space-x-4">
+                    <a href="#" class="w-10 h-10 bg-dark-tertiary hover:bg-purple-600 hover:text-white transition-all duration-300 rounded-lg flex items-center justify-center">
+                        💬
+                    </a>
+                    <a href="#" class="w-10 h-10 bg-dark-tertiary hover:bg-pink-600 hover:text-white transition-all duration-300 rounded-lg flex items-center justify-center">
+                        📷
+                    </a>
+                    <a href="#" class="w-10 h-10 bg-dark-tertiary hover:bg-purple-500 hover:text-white transition-all duration-300 rounded-lg flex items-center justify-center">
+                        📺
+                    </a>
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div>
+                <h3 class="font-orbitron font-bold text-lg mb-4 text-neon-cyan">Quick Links</h3>
+                <ul class="space-y-2">
+                    <li><a href="/landing#gamers" class="text-gray-400 hover:text-neon-cyan transition-colors duration-300">For Gamers</a></li>
+                    <li><a href="/landing#owners" class="text-gray-400 hover:text-neon-cyan transition-colors duration-300">For Owners</a></li>
+                    <li><a href="/landing#analytics" class="text-gray-400 hover:text-neon-cyan transition-colors duration-300">Analytics</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-neon-cyan transition-colors duration-300">Support</a></li>
+                </ul>
+            </div>
+
+            <!-- Legal -->
+            <div>
+                <h3 class="font-orbitron font-bold text-lg mb-4 text-neon-cyan">Legal</h3>
+                <ul class="space-y-2">
+                    <li><a href="#" class="text-gray-400 hover:text-neon-cyan transition-colors duration-300">Privacy Policy</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-neon-cyan transition-colors duration-300">Terms of Service</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-neon-cyan transition-colors duration-300">Cookie Policy</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-neon-cyan transition-colors duration-300">Refund Policy</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="border-t border-neon-cyan/20 mt-8 pt-8 text-center">
+            <p class="text-gray-400">
+                © 2025 Smart PS Lounge. All rights reserved. Game. Compete. Conquer.
+            </p>
+        </div>
+    </div>
+</footer>
+
+<script th:src="@{'/js/script.js'}" defer></script>
+</body>
+</html>

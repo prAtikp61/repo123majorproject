@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select a Slot</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'neon-cyan': '#00ffff',
+                        'neon-purple': '#8b5cf6',
+                        'neon-green': '#10b981',
+                        'dark-bg': '#0a0a0a',
+                        'dark-secondary': '#1a1a1a',
+                        'dark-tertiary': '#2a2a2a'
+                    },
+                },
+            }
+        }
+    </script>
+
+    <link rel="stylesheet" th:href="@{'/css/style.css'}">
+</head>
+<body class="bg-dark-bg text-white">
+
+<div class="fixed inset-0 pointer-events-none z-0">
+    <div class="particle w-1 h-1" style="left: 10%; animation-delay: 0s;"></div>
+    <div class="particle w-2 h-2" style="left: 20%; animation-delay: 1s;"></div>
+    <div class="particle w-1 h-1" style="left: 30%; animation-delay: 2s;"></div>
+    <div class="particle w-2 h-2" style="left: 40%; animation-delay: 3s;"></div>
+    <div class="particle w-1 h-1" style="left: 50%; animation-delay: 4s;"></div>
+    <div class="particle w-2 h-2" style="left: 60%; animation-delay: 5s;"></div>
+    <div class="particle w-1 h-1" style="left: 70%; animation-delay: 0.5s;"></div>
+    <div class="particle w-2 h-2" style="left: 80%; animation-delay: 1.5s;"></div>
+    <div class="particle w-1 h-1" style="left: 90%; animation-delay: 2.5s;"></div>
+</div>
+
+<nav class="fixed top-0 w-full bg-dark-secondary/90 backdrop-blur-md border-b border-neon-cyan/20 z-50">
+    <div class="container mx-auto px-6 py-4">
+        <div class="flex items-center justify-between">
+            <a th:href="@{'/landing'}" class="flex items-center space-x-2">
+                <div class="w-10 h-10 bg-gradient-to-r from-neon-purple to-neon-cyan rounded-lg flex items-center justify-center animate-glow">
+                    <span class="font-orbitron font-bold text-lg">PS</span>
+                </div>
+                <span class="font-orbitron font-bold text-xl text-glow-1 text-neon-cyan">Smart PS Lounge</span>
+            </a>
+
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="/landing#home" class="hover:text-neon-cyan transition-colors duration-300">Home</a>
+                <a href="/landing#gamers" class="hover:text-neon-cyan transition-colors duration-300">For Gamers</a>
+                <a href="/landing#owners" class="hover:text-neon-cyan transition-colors duration-300">For Owners</a>
+                <a href="/landing#analytics" class="hover:text-neon-cyan transition-colors duration-300">Analytics</a>
+            </div>
+
+            <div class="flex items-center space-x-4">
+                <a th:href="@{'/user/findcafe'}" class="btn-gaming px-6 py-2 text-white font-semibold rounded-lg">
+                    Back
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="min-h-screen flex items-center justify-center bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1598550476439-6847785f554e?q=80&w=1974&auto=format&fit=crop');">
+    <div class="glass-effect p-8 rounded-xl border border-neon-cyan/20 w-full max-w-2xl">
+        <div class="text-center mb-8">
+            <h1 class="font-orbitron text-3xl font-bold text-glow text-neon-cyan">Book Your Slot</h1>
+            <p class="text-gray-300 mt-2" th:text="'Seat ' + ${pc.seatNumber} + ' at ' + ${pc.cafeName}">Seat # at Cafe Name</p>
+            <p class="text-gray-400 text-sm" th:text="${pc.configuration}">PC Configuration</p>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+
+            <form th:each="slot : ${availableSlots}" th:action="@{'/user/confirm-booking'}" method="post" class="w-full">
+                <input type="hidden" name="pcId" th:value="${pc.id}" />
+                <input type="hidden" name="startTime" th:value="${#temporals.format(slot, 'HH:mm')}" />
+                <button type="submit" class="w-full btn-gaming py-3 rounded-lg font-semibold">
+                    <span th:text="${#temporals.format(slot, 'HH:mm')}"></span>
+                    -
+                    <span th:text="${#temporals.format(slot.plusHours(1), 'HH:mm')}"></span>
+                </button>
+            </form>
+        </div>
+
+        <div th:if="${#lists.isEmpty(availableSlots)}" class="text-center py-10">
+            <p class="text-gray-400 text-lg">Sorry, there are no available slots for this PC today.</p>
+            <a th:href="@{/user/cafes/{cafeId}(cafeId=${pc.cafeId})}" class="mt-4 inline-block text-neon-cyan hover:underline">Go Back</a>
+        </div>
+    </div>
+</div>
+<footer class="bg-dark-secondary border-t border-neon-cyan/20 py-12">
+    <div class="container mx-auto px-6">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div class="col-span-1 md:col-span-2">
+                <div class="flex items-center space-x-2 mb-4">
+                    <div class="w-10 h-10 bg-gradient-to-r from-neon-purple to-neon-cyan rounded-lg flex items-center justify-center animate-glow">
+                        <span class="font-orbitron font-bold text-lg">PS</span>
+                    </div>
+                    <span class="font-orbitron font-bold text-xl text-glow-1 text-neon-cyan">Smart PS Lounge</span>
+                </div>
+                <p class="text-gray-400 mb-6 max-w-md">
+                    The ultimate gaming destination where players come together to compete, connect, and conquer.
+                    Experience high-performance gaming with seamless booking and community events.
+                </p>
+
+                <div class="space-y-2 mb-6">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-neon-cyan">📍</span>
+                        <span class="text-gray-400">123 Gaming Street, Tech City, TC 12345</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-neon-cyan">📞</span>
+                        <span class="text-gray-400">+1 (555) 123-GAME</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-neon-cyan">✉️</span>
+                        <span class="text-gray-400">info@gamehub.com</span>
+                    </div>
+                </div>
+
+                <div class="flex space-x-4">
+                    <a href="#" class="w-10 h-10 bg-dark-tertiary hover:bg-purple-600 hover:text-white transition-all duration-300 rounded-lg flex items-center justify-center">
+                        💬
+                    </a>
+                    <a href="#" class="w-10 h-10 bg-dark-tertiary hover:bg-pink-600 hover:text-white transition-all duration-300 rounded-lg flex items-center justify-center">
+                        📷
+                    </a>
+                    <a href="#" class="w-10 h-10 bg-dark-tertiary hover:bg-purple-500 hover:text-white transition-all duration-300 rounded-lg flex items-center justify-center">
+                        📺
+                    </a>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="font-orbitron font-bold text-lg mb-4 text-neon-cyan">Quick Links</h3>
+                <ul class="space-y-2">
+                    <li><a href="/landing#gamers" class="text-gray-400 hover:text-neon-cyan transition-colors duration-300">For Gamers</a></li>
+                    <li><a href="/landing#owners" class="text-gray-400 hover:text-neon-cyan transition-colors duration-300">For Owners</a></li>
+                    <li><a href="/landing#analytics" class="text-gray-400 hover:text-neon-cyan transition-colors duration-300">Analytics</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-neon-cyan transition-colors duration-300">Support</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h3 class="font-orbitron font-bold text-lg mb-4 text-neon-cyan">Legal</h3>
+                <ul class="space-y-2">
+                    <li><a href="#" class="text-gray-400 hover:text-neon-cyan transition-colors duration-300">Privacy Policy</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-neon-cyan transition-colors duration-300">Terms of Service</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-neon-cyan transition-colors duration-300">Cookie Policy</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-neon-cyan transition-colors duration-300">Refund Policy</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="border-t border-neon-cyan/20 mt-8 pt-8 text-center">
+            <p class="text-gray-400">
+                © 2025 Smart PS Lounge. All rights reserved. Game. Compete. Conquer.
+            </p>
+        </div>
+    </div>
+</footer>
+
+<script th:src="@{'/js/script.js'}" defer></script>
+</body>
+</html>
