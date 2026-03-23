@@ -11,6 +11,10 @@ public class SlotDetails {
     private LocalTime endTime;
     private String status;
     private long cafeId;
+    private Long bookingId;
+    private String customerName;
+    private String customerEmail;
+    private String customerPhone;
 
     public Long getId() {
         return id;
@@ -50,5 +54,37 @@ public class SlotDetails {
 
     public void setCafeId(long cafeId) {
         this.cafeId = cafeId;
+    }
+
+    public Long getBookingId() {
+        return bookingId;
+    }
+
+    public void setBookingId(Long bookingId) {
+        this.bookingId = bookingId;
+    }
+
+    public String getCustomerName() {
+        return customerName;
+    }
+
+    public void setCustomerName(String customerName) {
+        this.customerName = customerName;
+    }
+
+    public String getCustomerEmail() {
+        return customerEmail;
+    }
+
+    public void setCustomerEmail(String customerEmail) {
+        this.customerEmail = customerEmail;
+    }
+
+    public String getCustomerPhone() {
+        return customerPhone;
+    }
+
+    public void setCustomerPhone(String customerPhone) {
+        this.customerPhone = customerPhone;
     }
 }

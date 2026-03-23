@@ -3,6 +3,7 @@ package com.Major.majorProject.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -24,6 +25,11 @@ public class Cafe {
     private Double hourlyRate;
 
     private String cafeImage;
+
+    @ElementCollection
+    @CollectionTable(name = "cafe_amenities", joinColumns = @JoinColumn(name = "cafe_id"))
+    @Column(name = "amenity")
+    private List<String> amenities = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(name = "owner_id", nullable = false)
@@ -86,6 +92,14 @@ public class Cafe {
 
     public void setCafeImage(String cafeImage) {
         this.cafeImage = cafeImage;
+    }
+
+    public List<String> getAmenities() {
+        return amenities;
+    }
+
+    public void setAmenities(List<String> amenities) {
+        this.amenities = amenities;
     }
 
     public CafeOwner getOwner() {

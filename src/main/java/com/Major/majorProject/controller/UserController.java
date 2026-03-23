@@ -9,6 +9,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Controller
@@ -32,9 +33,18 @@ public class UserController {
     public String cafeDetails(@PathVariable("cafeId") long cafeId, Model model) {
         CafeAdditionDto cafeDto = ownerService.getCafeDtoById(cafeId);
         List<PCDto> pcs = ownerService.getAllPcOfCafe(cafeId);
+        List<Integer> optimizationSlots = new ArrayList<>();
+        if (cafeDto.getOpenTime() != null && cafeDto.getCloseTime() != null) {
+            LocalTime cursor = cafeDto.getOpenTime();
+            while (cursor.isBefore(cafeDto.getCloseTime())) {
+                optimizationSlots.add(cursor.getHour());
+                cursor = cursor.plusHours(1);
+            }
+        }
 
         model.addAttribute("cafe", cafeDto);
         model.addAttribute("pcs", pcs);
+        model.addAttribute("optimizationSlots", optimizationSlots);
         model.addAttribute("reviews", List.of());
         return "user/userCafeDetails";
     }

@@ -116,7 +116,7 @@
             <div th:each="cafe : ${cafes}"
                  class="cafe-card rounded-xl overflow-hidden glass-effect card-hover"
                  th:attr="data-name=${cafe.name}, data-address=${cafe.address}, data-price=${cafe.hourlyRate}, data-rating=4.5">
-                <img th:src="${cafe.cafeImage}" alt="Cafe Image" class="w-full h-48 object-cover">
+                <img th:src="${#strings.isEmpty(cafe.cafeImage) or cafe.cafeImage == '.' ? '/images/cafe1.jpeg' : cafe.cafeImage}" alt="Cafe Image" class="w-full h-48 object-cover">
                 <div class="p-6">
                     <div class="flex justify-between items-start">
                         <h3 class="font-orbitron font-bold text-xl text-neon-cyan mb-1" th:text="${cafe.name}">Cafe Name</h3>

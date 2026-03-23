@@ -21,6 +21,11 @@ public class PublicController {
         this.userService = userService;
     }
 
+    @GetMapping({"/", "/."})
+    public String home() {
+        return "redirect:/landing";
+    }
+
     @GetMapping("/landing")
     public String landing(){
         return "landing";

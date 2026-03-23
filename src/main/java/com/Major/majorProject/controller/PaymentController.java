@@ -233,4 +233,73 @@ public class PaymentController {
             return "redirect:/payment-error";
         }
     }
+
+    @PostMapping("/payments/dev-bypass")
+    public String bypassCheckout(@RequestParam Long bookingId,
+                                 @RequestParam String customerName,
+                                 @RequestParam String customerEmail,
+                                 @RequestParam(required = false) String customerPhone,
+                                 @RequestParam(name = "preferredGames", required = false) String preferredGamesString) {
+        try {
+            UserBooking userBooking = bookingRepository.findById(bookingId)
+                    .orElseThrow(() -> new IllegalStateException("Booking not found with ID: " + bookingId));
+
+            User user = userRepository.findByEmail(customerEmail)
+                    .orElseGet(() -> {
+                        User newUser = new User();
+                        newUser.setName(customerName);
+                        newUser.setEmail(customerEmail);
+                        newUser.setPhone(customerPhone);
+                        return userRepository.save(newUser);
+                    });
+
+            if (userBooking.getUser() == null) {
+                userBooking.setUser(user);
+                bookingRepository.save(userBooking);
+            }
+
+            Cafe cafe = userBooking.getPc().getCafe();
+            savePreferredGames(user, cafe, preferredGamesString);
+            Long confirmedBookingId = paymentService.bypassPayment(bookingId, customerName, customerEmail, customerPhone);
+            paymentService.generateAndEmailConfirmation(confirmedBookingId);
+            return "redirect:/payment/success/dev?bookingId=" + confirmedBookingId;
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+            return "redirect:/payment-error";
+        }
+    }
+
+    @GetMapping("/payment/success/dev")
+    public String paymentBypassSuccess(@RequestParam("bookingId") Long bookingId, Model model) {
+        model.addAttribute("message", "Test payment bypass completed and booking is confirmed.");
+        model.addAttribute("bookingId", bookingId);
+        return "user/payment-success";
+    }
+
+    @GetMapping("/payment-error")
+    public String paymentError(Model model) {
+        if (!model.containsAttribute("error")) {
+            model.addAttribute("error", "Payment could not be completed. Please try again.");
+        }
+        return "user/payment-error";
+    }
+
+    private void savePreferredGames(User user, Cafe cafe, String preferredGamesString) {
+        if (user == null || preferredGamesString == null || preferredGamesString.isEmpty()) {
+            return;
+        }
+
+        List<String> preferredGames = Arrays.stream(preferredGamesString.split(","))
+                .map(String::trim)
+                .filter(game -> !game.isBlank())
+                .collect(Collectors.toList());
+
+        for (String gameName : preferredGames) {
+            UserGamePreference preference = new UserGamePreference();
+            preference.setUser(user);
+            preference.setGameName(gameName);
+            preference.setCafe(cafe);
+            userGamePreferenceRepository.save(preference);
+        }
+    }
 }

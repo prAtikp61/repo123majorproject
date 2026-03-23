@@ -26,14 +26,21 @@ public class BookingService {
     }
 
     @Transactional
-    public Long createBookingHold(Long slotId) {
+    public Long createBookingHold(Long slotId, LocalDate bookingDate) {
+        if (bookingDate.isBefore(LocalDate.now())) {
+            throw new IllegalStateException("You cannot book a past date.");
+        }
 
-        // Corrected the call to use the enum type
-        userBookingRepository.findBySlotIdAndStatusAndExpirationTimeAfter(
-            slotId, UserBooking.BookingStatus.PENDING, LocalDateTime.now()
+        userBookingRepository.findBySlotIdAndBookingDateAndStatusAndExpirationTimeAfter(
+            slotId, bookingDate, UserBooking.BookingStatus.PENDING, LocalDateTime.now()
         ).ifPresent(hold -> {
             throw new IllegalStateException("Slot is currently being booked by another user.");
         });
+
+        if (userBookingRepository.existsBySlotIdAndBookingDateAndStatus(
+                slotId, bookingDate, UserBooking.BookingStatus.BOOKED)) {
+            throw new IllegalStateException("This slot is already booked for the selected date.");
+        }
 
         // FIRST, fetch the full Slot object from the database.
         Slot slotToBook = slotRepository.findById(slotId)
@@ -53,7 +60,7 @@ public class BookingService {
         newHold.setPc(slotToBook.getPc());
         newHold.setStartTime(slotToBook.getStartTime());
         newHold.setEndTime(slotToBook.getEndTime());
-        newHold.setBookingDate(LocalDate.now());
+        newHold.setBookingDate(bookingDate);
 
         UserBooking savedHold = userBookingRepository.save(newHold);
 

@@ -6,6 +6,8 @@ import org.springframework.format.annotation.DateTimeFormat; // Added import
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class CafeAdditionDto {
@@ -20,6 +22,8 @@ public class CafeAdditionDto {
     private int availablePcs;
     private MultipartFile cafeImageFile; // Renamed from cafeImage
     private String cafeImage;
+    private List<String> amenities = new ArrayList<>();
+    private String amenitiesInput;
 
     public long getId() {
         return id;
@@ -91,5 +95,21 @@ public class CafeAdditionDto {
 
     public void setCafeImage(String cafeImage) {
         this.cafeImage = cafeImage;
+    }
+
+    public List<String> getAmenities() {
+        return amenities;
+    }
+
+    public void setAmenities(List<String> amenities) {
+        this.amenities = amenities;
+    }
+
+    public String getAmenitiesInput() {
+        return amenitiesInput;
+    }
+
+    public void setAmenitiesInput(String amenitiesInput) {
+        this.amenitiesInput = amenitiesInput;
     }
 }
