@@ -188,6 +188,15 @@ public class OwnerController {
         return "owner/analytics";
     }
 
+    @GetMapping("/analytics")
+    public String ownerAnalyticsHome() {
+        List<CafeAdditionDto> cafes = ownerService.getAllCafeOfOwner();
+        if (cafes.isEmpty()) {
+            return "redirect:/owner/cafes";
+        }
+        return "redirect:/owner/analytics/popular-games/" + cafes.get(0).getId();
+    }
+
     @GetMapping("/analytics/popular-games")
     public String redirectPopularGamesAnalytics() {
         return "redirect:/owner/";

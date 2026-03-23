@@ -21,7 +21,8 @@
     </script>
     <link rel="stylesheet" th:href="@{'/css/style.css'}">
 </head>
-<body class="bg-dark-bg text-white flex">
+<body class="bg-dark-bg text-white flex pt-24">
+<div th:replace="~{fragments/owner-navbar :: ownerNavbar('cafes')}"></div>
 <aside class="w-64 bg-dark-secondary h-screen sticky top-0 border-r border-neon-cyan/20 flex flex-col">
     <div class="p-6 border-b border-neon-cyan/20">
         <h1 class="font-orbitron font-bold text-xl text-neon-cyan text-center">OWNER PANEL</h1>
