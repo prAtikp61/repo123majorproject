@@ -34,7 +34,7 @@ public class PaymentService {
 
     private static final Logger logger = LoggerFactory.getLogger(PaymentService.class);
 
-    @Value("${stripe.secret.key}")
+    @Value("${stripe.secret.key:}")
     private String stripeSecretKey;
 
     private final JavaMailSender mailSender;
@@ -57,28 +57,16 @@ public class PaymentService {
     
     @PostConstruct
     public void init() {
-        Stripe.apiKey = stripeSecretKey;
+        if (stripeSecretKey != null && !stripeSecretKey.isBlank()) {
+            Stripe.apiKey = stripeSecretKey;
+        }
     }
 
     @Transactional
     public String createStripeCheckoutSession(Long bookingId, String customerName, String customerEmail, String customerPhone) throws StripeException {
         logger.info("Starting a simple checkout process for bookingId: {}", bookingId);
         
-        UserBooking booking = userBookingRepository.findById(bookingId)
-                .orElseThrow(() -> new RuntimeException("Booking not found with ID: " + bookingId));
-        
-        User user = userRepository.findByEmail(customerEmail)
-                .orElseGet(() -> {
-                    User newUser = new User();
-                    newUser.setName(customerName);
-                    newUser.setEmail(customerEmail);
-                    if (customerPhone != null && !customerPhone.isEmpty()) {
-                        newUser.setPhone(customerPhone);
-                    }
-                    return userRepository.save(newUser);
-                });
-        booking.setUser(user);
-        userBookingRepository.save(booking);
+        UserBooking booking = attachUserToBooking(bookingId, customerName, customerEmail, customerPhone);
         
         long priceInCents = booking.getSlot().getPc().getCafe().getHourlyRate().longValue() * 100;
         String successUrl = "http://localhost:8080/payment/success?session_id={CHECKOUT_SESSION_ID}";
@@ -136,21 +124,10 @@ public class PaymentService {
             if (booking.getStatus() == UserBooking.BookingStatus.PENDING) {
                 booking.setStatus(UserBooking.BookingStatus.BOOKED);
                 userBookingRepository.save(booking);
-
-                // booking.getSlot().setBooked(true);
-                // logger.info("Booking ID {} status updated to BOOKED.", booking.getId());
-
-
-                // 2. Find the associated slot and set it to booked
                 Slot slot = booking.getSlot();
-                slot.setBooked(true);
-                // Note: Since Slot is part of the UserBooking aggregate and the method is transactional,
-                // changes to slot will be saved automatically when the transaction commits.
-                // You might need an explicit slotRepository.save(slot) if the relationship is configured differently.
                 
                 logger.info("Booking ID {} status updated to BOOKED and Slot ID {} marked as booked.", booking.getId(), slot.getId());
                 
-                // 3. Broadcast the update via WebSocket AFTER the transaction commits successfully
                 SlotUpdateMessage message = new SlotUpdateMessage(slot.getId(), true);
                 messagingTemplate.convertAndSend("/topic/slot-updates", message);
                 logger.info("Broadcasted update for Slot ID {}", slot.getId());
@@ -170,6 +147,37 @@ public class PaymentService {
      */
     public Session retrieveStripeSession(String sessionId) throws StripeException {
         return Session.retrieve(sessionId);
+    }
+
+    @Transactional
+    public Long bypassPayment(Long bookingId, String customerName, String customerEmail, String customerPhone) {
+        UserBooking booking = attachUserToBooking(bookingId, customerName, customerEmail, customerPhone);
+
+        if (booking.getStatus() == UserBooking.BookingStatus.PENDING) {
+            booking.setStatus(UserBooking.BookingStatus.BOOKED);
+            userBookingRepository.save(booking);
+            messagingTemplate.convertAndSend("/topic/slot-updates", new SlotUpdateMessage(booking.getSlot().getId(), true));
+        }
+
+        return booking.getId();
+    }
+
+    private UserBooking attachUserToBooking(Long bookingId, String customerName, String customerEmail, String customerPhone) {
+        UserBooking booking = userBookingRepository.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Booking not found with ID: " + bookingId));
+
+        User user = userRepository.findByEmail(customerEmail)
+                .orElseGet(() -> {
+                    User newUser = new User();
+                    newUser.setName(customerName);
+                    newUser.setEmail(customerEmail);
+                    if (customerPhone != null && !customerPhone.isEmpty()) {
+                        newUser.setPhone(customerPhone);
+                    }
+                    return userRepository.save(newUser);
+                });
+        booking.setUser(user);
+        return userBookingRepository.save(booking);
     }
 
     /**

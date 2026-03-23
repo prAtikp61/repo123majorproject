@@ -106,6 +106,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Controller
@@ -127,9 +128,11 @@ public class BookingController {
      * It creates the hold and then REDIRECTS to the confirmation page.
      */
     @PostMapping("/bookings/create-hold")
-    public String createBookingHoldFromForm(@RequestParam("slotId") Long slotId, RedirectAttributes redirectAttributes) {
+    public String createBookingHoldFromForm(@RequestParam("slotId") Long slotId,
+                                            @RequestParam("bookingDate") LocalDate bookingDate,
+                                            RedirectAttributes redirectAttributes) {
         try {
-            Long bookingId = bookingService.createBookingHold(slotId);
+            Long bookingId = bookingService.createBookingHold(slotId, bookingDate);
             
             // SUCCESS: This is the redirect action. It tells the browser to go to a new URL.
             return "redirect:/bookings/confirm/" + bookingId;
@@ -139,7 +142,7 @@ public class BookingController {
             Slot slot = slotRepository.findById(slotId).orElse(null);
             Long pcId = (slot != null) ? slot.getPc().getId() : 0;
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
-            return "redirect:/allSlots/pc/" + pcId;
+            return "redirect:/allSlots/pc/" + pcId + "?date=" + bookingDate;
         }
     }
 

@@ -16,7 +16,8 @@
     </script>
     <link rel="stylesheet" th:href="@{'/css/style.css'}">
 </head>
-<body class="bg-dark-bg text-white flex">
+<body class="bg-dark-bg text-white flex pt-24">
+<div th:replace="~{fragments/owner-navbar :: ownerNavbar('cafes')}"></div>
 <aside class="w-64 bg-dark-secondary h-screen sticky top-0 border-r border-neon-cyan/20 flex flex-col">
     <div class="p-6 border-b border-neon-cyan/20"><h1 class="font-orbitron font-bold text-xl text-neon-cyan text-center">OWNER PANEL</h1></div>
     <nav class="p-4 space-y-2 flex-grow">
@@ -30,6 +31,12 @@
     </div>
 </aside>
 <main class="flex-1 p-8">
+    <div class="mb-6 flex flex-wrap gap-3 rounded-xl border border-neon-cyan/20 bg-dark-secondary p-4">
+        <a th:href="@{/owner/}" class="rounded-lg bg-dark-bg px-4 py-2 font-semibold text-gray-200 hover:text-neon-cyan">Dashboard</a>
+        <a th:href="@{/owner/cafes}" class="rounded-lg bg-dark-bg px-4 py-2 font-semibold text-gray-200 hover:text-neon-cyan">Manage Cafes</a>
+        <a th:href="@{/owner/PCs/{cafeId}(cafeId=${cafeId})}" class="rounded-lg bg-dark-bg px-4 py-2 font-semibold text-gray-200 hover:text-neon-cyan">Manage PCs</a>
+        <a th:href="@{/owner/addSeat/{cafeId}(cafeId=${cafeId})}" class="rounded-lg bg-neon-cyan/10 px-4 py-2 font-semibold text-neon-cyan">Add PC</a>
+    </div>
     <h1 class="font-orbitron text-4xl font-bold text-neon-purple mb-8">Add New PC</h1>
     <form th:action="@{/owner/addSeat/{cafeId}(cafeId=${cafeId})}" th:object="${pcDto}" method="post" class="max-w-xl mx-auto bg-dark-secondary p-8 rounded-xl border border-neon-purple/20 space-y-6">
         <div>

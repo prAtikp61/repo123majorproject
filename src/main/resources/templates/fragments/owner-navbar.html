@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<nav th:fragment="ownerNavbar(activeTab)" class="fixed top-0 w-full bg-dark-secondary/90 backdrop-blur-md border-b border-neon-cyan/20 z-50">
+    <div class="container mx-auto px-6 py-4">
+        <div class="flex items-center justify-between gap-4">
+            <a th:href="@{/owner/}" class="flex items-center space-x-2">
+                <div class="w-10 h-10 bg-gradient-to-r from-neon-purple to-neon-cyan rounded-lg flex items-center justify-center animate-glow">
+                    <span class="font-orbitron font-bold text-lg">PS</span>
+                </div>
+                <span class="font-orbitron font-bold text-xl text-glow-1 text-neon-cyan">Smart PS Lounge</span>
+            </a>
+
+            <div class="hidden lg:flex items-center space-x-3">
+                <a th:href="@{/owner/}"
+                   class="rounded-lg px-4 py-2 font-semibold transition-colors duration-300"
+                   th:classappend="${activeTab == 'dashboard'} ? ' bg-neon-cyan/10 text-neon-cyan' : ' text-gray-200 hover:text-neon-cyan hover:bg-dark-bg'">Dashboard</a>
+                <a th:href="@{/owner/cafes}"
+                   class="rounded-lg px-4 py-2 font-semibold transition-colors duration-300"
+                   th:classappend="${activeTab == 'cafes'} ? ' bg-neon-cyan/10 text-neon-cyan' : ' text-gray-200 hover:text-neon-cyan hover:bg-dark-bg'">Manage Cafes</a>
+                <a th:href="@{/owner/addCafe}"
+                   class="rounded-lg px-4 py-2 font-semibold transition-colors duration-300"
+                   th:classappend="${activeTab == 'add-cafe'} ? ' bg-neon-cyan/10 text-neon-cyan' : ' text-gray-200 hover:text-neon-cyan hover:bg-dark-bg'">Add Cafe</a>
+                <a th:href="@{/owner/analytics}"
+                   class="rounded-lg px-4 py-2 font-semibold transition-colors duration-300"
+                   th:classappend="${activeTab == 'analytics'} ? ' bg-neon-cyan/10 text-neon-cyan' : ' text-gray-200 hover:text-neon-cyan hover:bg-dark-bg'">Analytics</a>
+            </div>
+
+            <form th:action="@{/logout}" method="post" class="m-0">
+                <button type="submit" class="rounded-lg bg-red-500/20 px-5 py-2 font-semibold text-red-300 transition-colors duration-300 hover:bg-red-500/40">
+                    Logout
+                </button>
+            </form>
+        </div>
+    </div>
+</nav>
+</body>
+</html>
