@@ -42,9 +42,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Controller
@@ -60,10 +62,15 @@ public class SlotController {
 
     // Main endpoint - returns HTML page
     @GetMapping("/pc/{pcId}")
-    public String findSlotsByPcId(@PathVariable Long pcId, Model model) {
-        List<SlotDto> slots = slotService.getSlotsByPcId(pcId);
+    public String findSlotsByPcId(@PathVariable Long pcId,
+                                  @RequestParam(value = "date", required = false) LocalDate date,
+                                  Model model) {
+        LocalDate bookingDate = date != null ? date : LocalDate.now();
+        List<SlotDto> slots = slotService.getSlotsByPcIdAndDate(pcId, bookingDate);
         model.addAttribute("slots", slots);
         model.addAttribute("pcId", pcId);
+        model.addAttribute("selectedDate", bookingDate);
+        model.addAttribute("minimumBookingDate", LocalDate.now());
         return "user/userSlotList"; // Remove .html extension - Thymeleaf adds it automatically
     }
 

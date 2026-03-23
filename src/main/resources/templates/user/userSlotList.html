@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Available Slots - PC <span th:text="${pcId}"></span></title>
-
+    <title>Available Slots</title>
     <script src="https://cdn.tailwindcss.com"></script>
-
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script>
         tailwind.config = {
             theme: {
@@ -18,217 +17,237 @@
                         'dark-bg': '#0a0a0a',
                         'dark-secondary': '#1a1a1a',
                         'dark-tertiary': '#2a2a2a'
-                    },
-                    animation: {
-                        'glow': 'glow 2s ease-in-out infinite alternate',
-                        'float': 'float 3s ease-in-out infinite',
-                    },
-                    keyframes: {
-                        glow: {
-                            '0%': { boxShadow: '0 0 5px #00ffff, 0 0 10px #00ffff, 0 0 15px #00ffff' },
-                            '100%': { boxShadow: '0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 30px #00ffff' }
-                        },
-                        float: {
-                            '0%, 100%': { transform: 'translateY(0px)' },
-                            '50%': { transform: 'translateY(-10px)' }
-                        }
                     }
                 }
             }
         }
     </script>
+    <style>
+        .booking-date-input {
+            width: 100%;
+            min-width: 260px;
+            border-radius: 14px;
+            border: 1px solid rgba(0, 255, 255, 0.22);
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(28, 28, 28, 0.95));
+            color: #fff;
+            padding: 0.9rem 1rem;
+            box-shadow: inset 0 0 0 1px rgba(139, 92, 246, 0.08);
+        }
 
+        .booking-date-input:focus {
+            outline: none;
+            border-color: rgba(0, 255, 255, 0.5);
+            box-shadow: 0 0 0 4px rgba(0, 255, 255, 0.08);
+        }
+
+        .flatpickr-calendar {
+            background: #121212;
+            border: 1px solid rgba(0, 255, 255, 0.24);
+            border-radius: 18px;
+            color: #f8fafc;
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.48);
+        }
+
+        .flatpickr-calendar.arrowTop:before,
+        .flatpickr-calendar.arrowTop:after {
+            border-bottom-color: #121212;
+        }
+
+        .flatpickr-months {
+            padding: 10px 10px 0;
+        }
+
+        .flatpickr-current-month {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: #00ffff;
+        }
+
+        .flatpickr-current-month .flatpickr-monthDropdown-months {
+            min-width: 132px;
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.04);
+            color: #ffffff;
+            font-weight: 700;
+            padding: 6px 10px;
+        }
+
+        .flatpickr-current-month input.cur-year {
+            color: #ffffff;
+            font-weight: 700;
+        }
+
+        .flatpickr-current-month .numInputWrapper {
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .flatpickr-current-month .numInputWrapper span.arrowUp:after {
+            border-bottom-color: #00ffff;
+        }
+
+        .flatpickr-current-month .numInputWrapper span.arrowDown:after {
+            border-top-color: #00ffff;
+        }
+
+        .flatpickr-weekdays {
+            margin: 8px 10px 0;
+            padding: 6px 4px;
+            border-radius: 12px;
+            background: rgba(0, 255, 255, 0.08);
+            border: 1px solid rgba(0, 255, 255, 0.12);
+        }
+
+        span.flatpickr-weekday {
+            color: #c4b5fd;
+            font-size: 0.76rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .flatpickr-days {
+            padding: 10px;
+        }
+
+        .flatpickr-day {
+            color: #e5e7eb;
+            border-radius: 10px;
+            height: 38px;
+            line-height: 38px;
+            max-width: 38px;
+        }
+
+        .flatpickr-day:hover {
+            background: rgba(139, 92, 246, 0.18);
+            border-color: rgba(139, 92, 246, 0.18);
+        }
+
+        .flatpickr-day.selected,
+        .flatpickr-day.startRange,
+        .flatpickr-day.endRange {
+            background: linear-gradient(135deg, #8b5cf6, #00ffff);
+            border-color: transparent;
+            color: #08111f;
+            font-weight: 800;
+        }
+
+        .flatpickr-day.today {
+            border-color: #10b981;
+            color: #10b981;
+        }
+
+        .flatpickr-day.flatpickr-disabled,
+        .flatpickr-day.flatpickr-disabled:hover,
+        .flatpickr-day.prevMonthDay,
+        .flatpickr-day.nextMonthDay {
+            color: rgba(148, 163, 184, 0.35);
+        }
+
+        .flatpickr-months .flatpickr-prev-month,
+        .flatpickr-months .flatpickr-next-month {
+            border-radius: 10px;
+            padding: 6px;
+            top: 10px;
+        }
+
+        .flatpickr-months .flatpickr-prev-month:hover svg,
+        .flatpickr-months .flatpickr-next-month:hover svg {
+            fill: #8b5cf6;
+        }
+    </style>
     <link rel="stylesheet" th:href="@{'/css/style.css'}">
 </head>
 <body class="bg-dark-bg text-white font-rajdhani overflow-x-hidden">
-
-<!-- Floating Particles -->
-<div class="fixed inset-0 pointer-events-none z-0">
-    <div class="particle w-1 h-1" style="left: 10%; animation-delay: 0s;"></div>
-    <div class="particle w-2 h-2" style="left: 20%; animation-delay: 1s;"></div>
-    <div class="particle w-1 h-1" style="left: 30%; animation-delay: 2s;"></div>
-    <div class="particle w-2 h-2" style="left: 40%; animation-delay: 3s;"></div>
-    <div class="particle w-1 h-1" style="left: 50%; animation-delay: 4s;"></div>
-    <div class="particle w-2 h-2" style="left: 60%; animation-delay: 5s;"></div>
-    <div class="particle w-1 h-1" style="left: 70%; animation-delay: 0.5s;"></div>
-    <div class="particle w-2 h-2" style="left: 80%; animation-delay: 1.5s;"></div>
-    <div class="particle w-1 h-1" style="left: 90%; animation-delay: 2.5s;"></div>
-</div>
-
-<!-- Navigation -->
 <nav class="fixed top-0 w-full bg-dark-secondary/90 backdrop-blur-md border-b border-neon-cyan/20 z-50">
-    <div class="container mx-auto px-6 py-4">
-        <div class="flex items-center justify-between">
-            <a th:href="@{'/landing'}" class="flex items-center space-x-2">
-                <div class="w-10 h-10 bg-gradient-to-r from-neon-purple to-neon-cyan rounded-lg flex items-center justify-center animate-glow">
-                    <span class="font-orbitron font-bold text-lg">PS</span>
-                </div>
-                <span class="font-orbitron font-bold text-xl text-glow-1 text-neon-cyan">Smart PS Lounge</span>
-            </a>
-
-            <div class="hidden md:flex items-center space-x-8">
-                <a href="/landing#home" class="hover:text-neon-cyan transition-colors duration-300">Home</a>
-                <a href="/landing#gamers" class="hover:text-neon-cyan transition-colors duration-300">For Gamers</a>
-                <a href="/landing#owners" class="hover:text-neon-cyan transition-colors duration-300">For Owners</a>
-                <a href="/landing#analytics" class="hover:text-neon-cyan transition-colors duration-300">Analytics</a>
+    <div class="container mx-auto px-6 py-4 flex items-center justify-between">
+        <a th:href="@{'/landing'}" class="flex items-center space-x-2">
+            <div class="w-10 h-10 bg-gradient-to-r from-neon-purple to-neon-cyan rounded-lg flex items-center justify-center">
+                <span class="font-orbitron font-bold text-lg">PS</span>
             </div>
-
-            <div class="flex items-center space-x-4">
-                <button onclick="history.back()" class="btn-gaming px-6 py-2 text-white font-semibold rounded-lg">
-                    Back
-                </button>
-            </div>
-        </div>
+            <span class="font-orbitron font-bold text-xl text-neon-cyan">Smart PS Lounge</span>
+        </a>
+        <button onclick="history.back()" class="btn-gaming px-6 py-2 text-white font-semibold rounded-lg">Back</button>
     </div>
 </nav>
 
-<!-- Cafe Header -->
-<header class="pt-32 pb-16 bg-dark-secondary text-center relative overflow-hidden">
-    <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1598550476439-6847785f554e?q=80&w=1974&auto=format&fit=crop'); opacity: 0.2;"></div>
-    <div class="relative">
-        <h1 class="font-orbitron text-5xl font-bold text-glow text-neon-purple">Available Time Slots</h1>
-        <p class="text-gray-400 mt-2 text-lg">PC <span th:text="${pcId}" class="text-neon-cyan font-bold"></span></p>
-    </div>
+<header class="pt-32 pb-10 bg-dark-secondary text-center">
+    <h1 class="font-orbitron text-5xl font-bold text-neon-purple">Available Time Slots</h1>
+    <p class="mt-2 text-lg text-gray-300">PC <span th:text="${pcId}" class="text-neon-cyan font-bold"></span></p>
 </header>
 
-<div th:if="${errorMessage}" class="container mx-auto -mt-8 mb-4 px-6">
-    <div class="bg-red-500/20 border border-red-500 text-red-400 px-4 py-3 rounded-lg relative" role="alert">
-        <strong class="font-bold">Oops!</strong>
-        <span class="block sm:inline" th:text="${errorMessage}">Slot could not be booked.</span>
+<main class="container mx-auto px-6 py-10">
+    <div class="mb-6 flex flex-wrap gap-3 rounded-xl border border-neon-cyan/20 bg-dark-secondary p-4">
+        <a th:href="@{'/landing'}" class="rounded-lg bg-dark-bg px-4 py-2 font-semibold text-gray-200 hover:text-neon-cyan">Home</a>
+        <a th:href="@{'/user/findcafe'}" class="rounded-lg bg-dark-bg px-4 py-2 font-semibold text-gray-200 hover:text-neon-cyan">All Cafes</a>
+        <button type="button" onclick="history.back()" class="rounded-lg bg-neon-cyan/10 px-4 py-2 font-semibold text-neon-cyan">Previous Page</button>
     </div>
-</div>
+    <div th:if="${errorMessage}" class="mb-6 rounded-lg border border-red-500 bg-red-500/10 px-4 py-3 text-red-300">
+        <strong>Oops!</strong>
+        <span th:text="${errorMessage}">Slot could not be booked.</span>
+    </div>
 
-<!-- main content -->
- <main class="container mx-auto px-6 py-12 relative z-10">
-    <div class="max-w-6xl mx-auto">
-        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            <div th:each="slot : ${slots}">
-                <div th:each="startTime : ${slot.startTime}">
-
-                    <form th:action="@{/bookings/create-hold}" method="post" class="w-full">
-                        
-                        <input type="hidden" name="pcId" th:value="${slot.pcId}" />
-                        <input type="hidden" name="slotId" th:value="${slot.id}" />
-                        <input type="hidden" name="startTime" th:value="${#temporals.format(startTime, 'HH:mm')}" />
-                        
-                        <button type="submit" 
-                                class="w-full py-3 rounded-lg font-semibold transition-all duration-300 glass-effect border-2"
-                                th:classappend="${slot.booked} ? 'bg-gray-600/50 cursor-not-allowed border-red-500/30 text-gray-400' : 'btn-gaming border-neon-green/30 hover:border-neon-green hover:scale-105'"
-                                th:disabled="${slot.booked}">
-                            
-                            <div class="text-center">
-                                <div class="text-sm font-bold text-neon-cyan">
-                                    <span th:text="${#temporals.format(startTime, 'HH:mm')}"></span>
-                                </div>
-                                <div class="text-xs text-gray-400">to</div>
-                                <div class="text-sm font-bold text-neon-cyan">
-                                    <span th:text="${#temporals.format(slot.endTime, 'HH:mm')}"></span>
-                                </div>
-                                
-                                <div class="text-xs mt-2">
-                                    <span th:if="${!slot.booked}" class="text-neon-green">Available</span>
-                                    <span th:if="${slot.booked}" class="text-red-400">Booked</span>
-                                </div>
-                            </div>
-                        </button>
-                    </form>
-
-                </div>
-            </div>
+    <form method="get" class="mb-8 flex flex-wrap items-end gap-4 rounded-xl border border-neon-cyan/20 bg-dark-secondary p-5">
+        <div>
+            <label for="bookingDate" class="mb-2 block text-sm font-semibold text-gray-300">Booking Date</label>
+            <input id="bookingDate" name="date" type="text" th:value="${selectedDate}" th:attr="data-min-date=${minimumBookingDate}" class="booking-date-input" placeholder="Select booking date" autocomplete="off">
         </div>
-        </div>
-    </main>
+        <button type="submit" class="btn-gaming rounded-lg px-6 py-2 font-semibold">Check Availability</button>
+    </form>
 
-        <!-- Empty State -->
-        <div th:if="${#lists.isEmpty(slots)}" class="text-center py-16">
-            <div class="text-6xl mb-4">🎮</div>
-            <h2 class="text-2xl font-bold text-gray-400 mb-2">No Slots Available</h2>
-            <p class="text-gray-500">Please check back later or try a different PC.</p>
-            <button onclick="history.back()" class="mt-4 btn-gaming px-6 py-2 rounded-lg">
-                Go Back
-            </button>
+    <div th:if="${#lists.isEmpty(slots)}" class="rounded-xl border border-neon-cyan/20 bg-dark-secondary p-10 text-center">
+        <div class="mb-4 text-5xl">PS</div>
+        <h2 class="mb-2 text-2xl font-bold text-gray-300">No Slots Available</h2>
+        <p class="text-gray-500">Try another date or select a different PC.</p>
+    </div>
+
+    <div th:unless="${#lists.isEmpty(slots)}" class="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
+        <div th:each="slot : ${slots}">
+            <form th:action="@{/bookings/create-hold}" method="post" class="h-full">
+                <input type="hidden" name="slotId" th:value="${slot.id}">
+                <input type="hidden" name="bookingDate" th:value="${selectedDate}">
+                <button type="submit"
+                        class="h-full w-full rounded-xl border-2 px-4 py-5 text-center transition-all duration-300"
+                        th:classappend="${slot.booked} ? ' border-red-500/30 bg-gray-700/50 text-gray-400 cursor-not-allowed' : ' border-neon-green/30 bg-dark-secondary hover:border-neon-green hover:-translate-y-1'"
+                        th:disabled="${slot.booked}">
+                    <div class="text-lg font-bold text-neon-cyan" th:text="${#temporals.format(slot.startTime[0], 'HH:mm')}">10:00</div>
+                    <div class="text-xs text-gray-400">to</div>
+                    <div class="text-lg font-bold text-neon-cyan" th:text="${#temporals.format(slot.endTime, 'HH:mm')}">11:00</div>
+                    <div class="mt-3 text-sm font-semibold" th:text="${slot.booked ? 'Booked' : 'Available'}"></div>
+                </button>
+            </form>
         </div>
     </div>
 </main>
 
-<!-- Footer -->
-<footer class="bg-dark-secondary border-t border-neon-cyan/20 py-12">
-    <div class="container mx-auto px-6">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <!-- Logo and Description -->
-            <div class="col-span-1 md:col-span-2">
-                <div class="flex items-center space-x-2 mb-4">
-                    <div class="w-10 h-10 bg-gradient-to-r from-neon-purple to-neon-cyan rounded-lg flex items-center justify-center animate-glow">
-                        <span class="font-orbitron font-bold text-lg">PS</span>
-                    </div>
-                    <span class="font-orbitron font-bold text-xl text-glow-1 text-neon-cyan">Smart PS Lounge</span>
-                </div>
-                <p class="text-gray-400 mb-6 max-w-md">
-                    The ultimate gaming destination where players come together to compete, connect, and conquer.
-                    Experience high-performance gaming with seamless booking and community events.
-                </p>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const bookingDateInput = document.getElementById('bookingDate');
+        if (!bookingDateInput) {
+            return;
+        }
 
-                <!-- Contact Details -->
-                <div class="space-y-2 mb-6">
-                    <div class="flex items-center space-x-2">
-                        <span class="text-neon-cyan">📍</span>
-                        <span class="text-gray-400">123 Gaming Street, Tech City, TC 12345</span>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <span class="text-neon-cyan">📞</span>
-                        <span class="text-gray-400">+1 (555) 123-GAME</span>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <span class="text-neon-cyan">✉️</span>
-                        <span class="text-gray-400">info@gamehub.com</span>
-                    </div>
-                </div>
-
-                <!-- Social Media Links -->
-                <div class="flex space-x-4">
-                    <a href="#" class="w-10 h-10 bg-dark-tertiary hover:bg-purple-600 hover:text-white transition-all duration-300 rounded-lg flex items-center justify-center">
-                        💬
-                    </a>
-                    <a href="#" class="w-10 h-10 bg-dark-tertiary hover:bg-pink-600 hover:text-white transition-all duration-300 rounded-lg flex items-center justify-center">
-                        📷
-                    </a>
-                    <a href="#" class="w-10 h-10 bg-dark-tertiary hover:bg-purple-500 hover:text-white transition-all duration-300 rounded-lg flex items-center justify-center">
-                        📺
-                    </a>
-                </div>
-            </div>
-
-            <!-- Quick Links -->
-            <div>
-                <h3 class="font-orbitron font-bold text-lg mb-4 text-neon-cyan">Quick Links</h3>
-                <ul class="space-y-2">
-                    <li><a href="/landing#gamers" class="text-gray-400 hover:text-neon-cyan transition-colors duration-300">For Gamers</a></li>
-                    <li><a href="/landing#owners" class="text-gray-400 hover:text-neon-cyan transition-colors duration-300">For Owners</a></li>
-                    <li><a href="/landing#analytics" class="text-gray-400 hover:text-neon-cyan transition-colors duration-300">Analytics</a></li>
-                    <li><a href="#" class="text-gray-400 hover:text-neon-cyan transition-colors duration-300">Support</a></li>
-                </ul>
-            </div>
-
-            <!-- Legal -->
-            <div>
-                <h3 class="font-orbitron font-bold text-lg mb-4 text-neon-cyan">Legal</h3>
-                <ul class="space-y-2">
-                    <li><a href="#" class="text-gray-400 hover:text-neon-cyan transition-colors duration-300">Privacy Policy</a></li>
-                    <li><a href="#" class="text-gray-400 hover:text-neon-cyan transition-colors duration-300">Terms of Service</a></li>
-                    <li><a href="#" class="text-gray-400 hover:text-neon-cyan transition-colors duration-300">Cookie Policy</a></li>
-                    <li><a href="#" class="text-gray-400 hover:text-neon-cyan transition-colors duration-300">Refund Policy</a></li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="border-t border-neon-cyan/20 mt-8 pt-8 text-center">
-            <p class="text-gray-400">
-                © 2025 Smart PS Lounge. All rights reserved. Game. Compete. Conquer.
-            </p>
-        </div>
-    </div>
-</footer>
-
+        flatpickr(bookingDateInput, {
+            dateFormat: 'Y-m-d',
+            altInput: true,
+            altFormat: 'd M, Y',
+            defaultDate: bookingDateInput.value || null,
+            minDate: bookingDateInput.dataset.minDate,
+            disableMobile: true,
+            monthSelectorType: 'dropdown',
+            onReady: function (selectedDates, dateStr, instance) {
+                if (instance.altInput) {
+                    instance.altInput.classList.add('booking-date-input');
+                }
+            }
+        });
+    });
+</script>
 <script th:src="@{'/js/script.js'}" defer></script>
 </body>
 </html>

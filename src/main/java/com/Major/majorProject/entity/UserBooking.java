@@ -34,7 +34,8 @@ public class UserBooking {
         PENDING, // A temporary hold, not yet paid
         BOOKED,  // Paid and confirmed
         COMPLETED,
-        CANCELLED
+        CANCELLED,
+        NO_SHOW
     }
 
     @ManyToOne(fetch = FetchType.LAZY)

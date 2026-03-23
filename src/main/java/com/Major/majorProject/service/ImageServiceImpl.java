@@ -20,6 +20,9 @@ public class ImageServiceImpl implements ImageService {
 
     @Override
     public String uploadImage(MultipartFile contactimage, String filename) {
+        if (contactimage == null || contactimage.isEmpty()) {
+            return null;
+        }
         try {
             byte[] data = new byte[contactimage.getInputStream().available()];
             contactimage.getInputStream().read(data);

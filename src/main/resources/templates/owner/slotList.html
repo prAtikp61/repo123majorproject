@@ -9,31 +9,33 @@
         tailwind.config = {
             theme: {
                 extend: {
-                    colors: {'neon-cyan':'#00ffff','neon-purple':'#8b5cf6','neon-green':'#10b981','dark-bg':'#0a0a0a','dark-secondary':'#1a1a1a'},
+                    colors: {'neon-cyan':'#00ffff','neon-purple':'#8b5cf6','neon-green':'#10b981','dark-bg':'#0a0a0a','dark-secondary':'#1a1a1a','dark-tertiary':'#2a2a2a'},
                 }
             }
         }
     </script>
     <link rel="stylesheet" th:href="@{'/css/style.css'}">
 </head>
-<body class="bg-dark-bg text-white flex">
-<aside class="w-64 bg-dark-secondary h-screen sticky top-0 border-r border-neon-cyan/20 flex flex-col">
-    <div class="p-6 border-b border-neon-cyan/20"><h1 class="font-orbitron font-bold text-xl text-neon-cyan text-center">OWNER PANEL</h1></div>
-    <nav class="p-4 space-y-2 flex-grow">
-        <a th:href="@{/owner/}" class="block py-3 px-4 rounded-lg hover:bg-neon-cyan/10 sidebar-link font-semibold">📈 Dashboard</a>
-        <a th:href="@{/owner/cafes}" class="block py-3 px-4 rounded-lg sidebar-link active font-semibold">☕ Manage Cafes</a>
-    </nav>
-    <div class="p-4 border-t border-neon-cyan/20">
-        <form th:action="@{/logout}" method="post">
-            <button type="submit" class="w-full text-center py-3 px-4 rounded-lg bg-red-500/20 hover:bg-red-500/40 text-red-300 font-semibold">Logout</button>
-        </form>
-    </div>
-</aside>
-<main class="flex-1 p-8">
+<body class="bg-dark-bg text-white pt-24">
+<div th:replace="~{fragments/owner-navbar :: ownerNavbar('cafes')}"></div>
+
+<main class="p-8">
     <div class="flex justify-between items-center mb-8">
         <h1 class="font-orbitron text-4xl font-bold text-neon-purple">Manage Slots for PC <span th:text="${pcId}"></span></h1>
         <a th:href="@{/owner/PCs/{cafeId}(cafeId=${cafeId})}" class="btn-gaming px-6 py-3 rounded-lg font-semibold text-dark-bg">Back to PCs</a>
     </div>
+
+    <form method="get" class="mb-6 flex flex-wrap items-end gap-3 rounded-xl border border-neon-cyan/20 bg-dark-secondary p-4">
+        <div>
+            <label for="ownerDate" class="mb-2 block text-sm font-semibold text-gray-300">View Booking Date</label>
+            <input id="ownerDate" name="date" type="date" th:value="${selectedDate}" th:attr="min=${minimumBookingDate}" class="rounded-lg border border-neon-cyan/30 bg-dark-bg px-3 py-2 text-white">
+        </div>
+        <button type="submit" class="btn-gaming rounded-lg px-5 py-2 font-semibold text-dark-bg">Load Slots</button>
+    </form>
+
+    <div th:if="${errorMessage}" class="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-200" th:text="${errorMessage}"></div>
+    <div th:if="${successMessage}" class="mb-6 rounded-xl border border-neon-green/30 bg-neon-green/10 px-4 py-3 text-neon-green" th:text="${successMessage}"></div>
+
     <div class="bg-dark-secondary border border-neon-cyan/20 rounded-xl overflow-hidden">
         <table class="w-full text-left">
             <thead class="bg-dark-tertiary/50">
@@ -41,6 +43,7 @@
                 <th class="p-4 font-orbitron">Start Time</th>
                 <th class="p-4 font-orbitron">End Time</th>
                 <th class="p-4 font-orbitron">Status</th>
+                <th class="p-4 font-orbitron">Actions</th>
             </tr>
             </thead>
             <tbody>
@@ -50,12 +53,30 @@
                 <td class="p-4">
                     <span class="px-3 py-1 rounded-full text-sm font-semibold"
                           th:text="${slot.status}"
-                          th:classappend="${slot.status == 'open' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}">
+                          th:classappend="${slot.status == 'open'} ? ' bg-green-500/20 text-green-400' : (${slot.status == 'booked'} ? ' bg-red-500/20 text-red-400' : ' bg-yellow-500/20 text-yellow-300')">
                     </span>
+                </td>
+                <td class="p-4">
+                    <div class="flex flex-wrap gap-2">
+                        <form th:action="@{/owner/slots/{pcId}/edit/{slotId}(pcId=${pcId},slotId=${slot.id})}" method="post" class="flex gap-2">
+                            <input type="hidden" name="date" th:value="${selectedDate}">
+                            <input type="time" name="startTime" th:value="${slot.startTime}" class="rounded-lg border border-neon-cyan/30 bg-dark-bg px-3 py-2">
+                            <button type="submit" class="rounded-lg bg-blue-500/20 px-3 py-2 text-blue-300 font-semibold">Update</button>
+                        </form>
+                        <a th:if="${slot.bookingId != null}" th:href="@{/owner/bookings/{bookingId}/receipt(bookingId=${slot.bookingId})}" class="rounded-lg bg-neon-cyan/15 px-3 py-2 text-neon-cyan font-semibold">View Receipt</a>
+                        <form th:if="${slot.status == 'booked'}" th:action="@{/owner/slots/{pcId}/no-show/{slotId}(pcId=${pcId},slotId=${slot.id})}" method="post">
+                            <input type="hidden" name="date" th:value="${selectedDate}">
+                            <button type="submit" class="rounded-lg bg-yellow-500/20 px-3 py-2 text-yellow-300 font-semibold">No-Show + Walk-in</button>
+                        </form>
+                        <form th:action="@{/owner/slots/{pcId}/delete/{slotId}(pcId=${pcId},slotId=${slot.id})}" method="post">
+                            <input type="hidden" name="date" th:value="${selectedDate}">
+                            <button type="submit" class="rounded-lg bg-red-500/20 px-3 py-2 text-red-300 font-semibold">Delete</button>
+                        </form>
+                    </div>
                 </td>
             </tr>
             <tr th:if="${slots.isEmpty()}">
-                <td colspan="3" class="p-4 text-center text-gray-500">No slots have been added for this PC yet. <a th:href="@{/owner/addSlots/{pcId}(pcId=${pcId})}" class="text-neon-cyan hover:underline">Add some now</a>.</td>
+                <td colspan="4" class="p-4 text-center text-gray-500">No slots have been added for this PC yet. <a th:href="@{/owner/addSlots/{pcId}(pcId=${pcId})}" class="text-neon-cyan hover:underline">Add some now</a>.</td>
             </tr>
             </tbody>
         </table>

@@ -6,113 +6,132 @@
     <title>Cafe Owner Analytics</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'neon-cyan':'#00ffff',
+                        'neon-purple':'#8b5cf6',
+                        'neon-green':'#10b981',
+                        'dark-bg':'#0a0a0a',
+                        'dark-secondary':'#1a1a1a',
+                        'dark-tertiary':'#2a2a2a'
+                    },
+                    animation: {
+                        'glow': 'glow 2s ease-in-out infinite alternate',
+                        'float': 'float 3s ease-in-out infinite'
+                    },
+                    keyframes: {
+                        glow: {
+                            '0%': { boxShadow: '0 0 5px #00ffff, 0 0 10px #00ffff, 0 0 15px #00ffff' },
+                            '100%': { boxShadow: '0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 30px #00ffff' }
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-10px)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{'/css/style.css'}">
     <style>
         body {
             font-family: 'Rajdhani', sans-serif;
             background-color: #0a0a0a;
             color: white;
         }
-        .container {
-            max-width: 900px; /* Width for better layout */
+        .analytics-container {
+            max-width: 900px;
             margin: 2rem auto;
             padding: 2rem;
             background-color: #1a1a1a;
             border-radius: 10px;
             box-shadow: 0 4px 15px rgba(0, 255, 255, 0.2);
         }
-        /* Style to ensure canvas height is respected */
         .chart-container {
             position: relative;
-            height: 400px; /* Default height */
-            background-color: #1f2937; /* bg-gray-800 equivalent */
-            border-radius: 0.5rem; /* rounded-lg */
-            padding: 1rem; /* p-4 */
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-lg */
-            margin-bottom: 3rem; /* mb-12 */
+            height: 400px;
+            background-color: #1f2937;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            margin-bottom: 3rem;
         }
-        /* Specific height for game chart */
         #gameChartContainer {
             height: 450px;
         }
     </style>
 </head>
-<body>
-<div class="container">
+<body class="pt-24">
+<div th:replace="~{fragments/owner-navbar :: ownerNavbar('analytics')}"></div>
+<div class="analytics-container">
     <div class="mb-6 text-center">
-        <h1 class="text-3xl font-bold mb-2 text-cyan-400 font-['Orbitron']">🎮 Game Popularity Dashboard</h1>
+        <h1 class="text-3xl font-bold mb-2 text-cyan-400 font-['Orbitron']">Game Popularity Dashboard</h1>
         <p class="text-gray-400">Real-time analytics of player preferences in your gaming cafe</p>
     </div>
 
-    <div id="summaryStats" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-    </div>
-
+    <div id="summaryStats" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8"></div>
     <div id="gameChartContainer" class="chart-container border border-cyan-500/20">
         <canvas id="gameChart"></canvas>
     </div>
 
     <div class="mb-6 text-center">
-        <h1 class="text-3xl font-bold mb-2 text-purple-400 font-['Orbitron']">📈 Monthly Booking Pattern</h1>
+        <h1 class="text-3xl font-bold mb-2 text-purple-400 font-['Orbitron']">Monthly Booking Pattern</h1>
         <p class="text-gray-400">Total confirmed bookings per month for the current year</p>
     </div>
-
     <div class="chart-container border border-purple-500/20">
         <canvas id="bookingChart"></canvas>
     </div>
 
     <div class="mb-6 text-center">
-        <h1 class="text-3xl font-bold mb-2 text-green-400 font-['Orbitron']">🕒 Peak Hour Analysis</h1>
+        <h1 class="text-3xl font-bold mb-2 text-green-400 font-['Orbitron']">Peak Hour Analysis</h1>
         <p class="text-gray-400">Bookings distribution throughout the day</p>
     </div>
-
     <div class="chart-container border border-green-500/20">
         <canvas id="hourlyBookingChart"></canvas>
     </div>
 
     <div class="mb-6 text-center">
-        <h1 class="text-3xl font-bold mb-2 text-yellow-400 font-['Orbitron']">💻 PC Utilization</h1>
+        <h1 class="text-3xl font-bold mb-2 text-yellow-400 font-['Orbitron']">PC Utilization</h1>
         <p class="text-gray-400">Percentage of booked slots per PC</p>
     </div>
-
     <div class="chart-container border border-yellow-500/20">
         <canvas id="pcUtilizationChart"></canvas>
     </div>
 
     <div class="mb-6 text-center">
-        <h1 class="text-3xl font-bold mb-2 text-blue-400 font-['Orbitron']">💰 Revenue Per PC</h1>
+        <h1 class="text-3xl font-bold mb-2 text-blue-400 font-['Orbitron']">Revenue Per PC</h1>
         <p class="text-gray-400">Estimated revenue generated by each seat</p>
     </div>
-
     <div class="chart-container border border-blue-500/20">
         <canvas id="pcRevenueChart"></canvas>
     </div>
-
 </div>
 
 <script>
-    // Function to get the cafe ID from the URL
     function getCafeIdFromUrl() {
         const pathSegments = window.location.pathname.split('/');
-        // Find the last segment that is purely numeric
         for (let i = pathSegments.length - 1; i >= 0; i--) {
             if (/^\d+$/.test(pathSegments[i])) {
                 return parseInt(pathSegments[i]);
             }
         }
         console.error("Could not extract numeric cafe ID from URL path:", window.location.pathname);
-        return null; // Return null if not found
+        return null;
     }
 
     const cafeId = getCafeIdFromUrl();
 
-    // --- Game Popularity Chart ---
     function generatePopularityColors(dataArray) {
         if (!dataArray || dataArray.length === 0) return [];
         const maxValue = Math.max(...dataArray);
-
-        const lowColor = { r: 0, g: 123, b: 255 };   // Cool Blue
-        const midColor = { r: 173, g: 255, b: 47 };  // Yellow-Green
-        const highColor = { r: 255, g: 191, b: 0 };  // Gold/Orange
+        const lowColor = { r: 0, g: 123, b: 255 };
+        const midColor = { r: 173, g: 255, b: 47 };
+        const highColor = { r: 255, g: 191, b: 0 };
 
         const interpolateColor = (color1, color2, factor) => {
             const r = Math.round(color1.r + factor * (color2.r - color1.r));
@@ -138,7 +157,7 @@
     }
 
     async function fetchAndRenderGameChart() {
-         if (!cafeId) {
+        if (!cafeId) {
             document.getElementById('gameChartContainer').innerHTML = '<p class="text-red-500 text-center text-xl p-4">Error: Could not determine Cafe ID.</p>';
             return;
         }
@@ -156,54 +175,66 @@
             const labels = gameData.map(game => game.gameName);
             const data = gameData.map(game => game.count);
             const totalPreferences = data.reduce((sum, count) => sum + count, 0);
-
             const colorData = generatePopularityColors(data);
             const backgroundColors = colorData.map(c => c.background);
             const borderColors = colorData.map(c => c.border);
-
             const mostPopular = gameData[0];
             const avgPreferences = (totalPreferences / gameData.length).toFixed(1);
 
-            const summaryStatsHTML = `
+            document.getElementById('summaryStats').innerHTML = `
                 <div class="bg-gradient-to-br from-yellow-600 to-yellow-500 rounded-lg p-4 text-center shadow-lg">
-                    <h3 class="text-lg font-bold">🏆 Most Popular</h3>
+                    <h3 class="text-lg font-bold">Most Popular</h3>
                     <p class="text-2xl font-['Orbitron']">${mostPopular.gameName}</p>
                     <p class="text-sm opacity-90">${mostPopular.count} preferences</p>
                 </div>
                 <div class="bg-gradient-to-br from-cyan-600 to-blue-500 rounded-lg p-4 text-center shadow-lg">
-                    <h3 class="text-lg font-bold">📊 Total Games</h3>
+                    <h3 class="text-lg font-bold">Total Games</h3>
                     <p class="text-2xl font-['Orbitron']">${gameData.length}</p>
                     <p class="text-sm opacity-90">different titles</p>
-
                 </div>
                 <div class="bg-gradient-to-br from-green-600 to-emerald-500 rounded-lg p-4 text-center shadow-lg">
-                    <h3 class="text-lg font-bold">👥 Avg Preferences</h3>
+                    <h3 class="text-lg font-bold">Avg Preferences</h3>
                     <p class="text-2xl font-['Orbitron']">${avgPreferences}</p>
                     <p class="text-sm opacity-90">per game</p>
                 </div>
             `;
-            document.getElementById('summaryStats').innerHTML = summaryStatsHTML;
 
-            const chartConfig = {
-                type: 'bar', data: { labels: labels, datasets: [{ data: data, backgroundColor: backgroundColors, borderColor: borderColors, borderWidth: 2, borderRadius: 6, borderSkipped: false, }] },
-                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { x: { beginAtZero: true, grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: 'white', font: { size: 13, weight: 'bold' }, stepSize: 1 }, title: { display: true, text: 'Number of Player Preferences', color: '#00ffff', font: { size: 14, weight: 'bold' } } }, y: { grid: { display: false }, ticks: { color: 'white', font: { size: 13, weight: 'bold' } } } }, plugins: { legend: { display: false }, title: { display: true, text: `Total Games: ${gameData.length} | Total Preferences: ${totalPreferences}`, color: '#00ffff', font: { size: 16, weight: 'bold' }, position: 'top', align: 'start', padding: { bottom: 20 } }, tooltip: { backgroundColor: 'rgba(0, 0, 0, 0.8)', titleColor: '#00ffff', bodyColor: 'white', borderColor: '#00ffff', borderWidth: 1, cornerRadius: 8, displayColors: false, callbacks: { title: (ctx) => `🎮 ${ctx[0].label}`, label: (ctx) => { const count = ctx.parsed.x; const percentage = totalPreferences > 0 ? ((count / totalPreferences) * 100).toFixed(1) : 0; return [`👥 Players: ${count}`, `📈 Share: ${percentage}% of total`, `🏆 Rank: #${ctx.dataIndex + 1}`, `⭐ Popularity Score: ${colorData[ctx.dataIndex].popularity}%`]; } } } } }
-            };
-            const ctx = document.getElementById('gameChart').getContext('2d');
-            new Chart(ctx, chartConfig);
+            new Chart(document.getElementById('gameChart').getContext('2d'), {
+                type: 'bar',
+                data: { labels, datasets: [{ data, backgroundColor: backgroundColors, borderColor: borderColors, borderWidth: 2, borderRadius: 6, borderSkipped: false }] },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                            ticks: { color: 'white', font: { size: 13, weight: 'bold' }, stepSize: 1 },
+                            title: { display: true, text: 'Number of Player Preferences', color: '#00ffff', font: { size: 14, weight: 'bold' } }
+                        },
+                        y: {
+                            grid: { display: false },
+                            ticks: { color: 'white', font: { size: 13, weight: 'bold' } }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        title: { display: true, text: `Total Games: ${gameData.length} | Total Preferences: ${totalPreferences}`, color: '#00ffff', font: { size: 16, weight: 'bold' }, position: 'top', align: 'start', padding: { bottom: 20 } }
+                    }
+                }
+            });
         } catch (error) {
-            console.error("Error fetching or rendering game chart:", error);
             document.getElementById('gameChartContainer').innerHTML = `<p class="text-red-500 text-center text-xl p-4">Failed to load game analytics data. Error: ${error.message}</p>`;
         }
     }
 
-    // --- Monthly Booking Chart ---
     async function fetchAndRenderBookingChart() {
-        if (!cafeId) return; // Don't run if cafeId is invalid
+        if (!cafeId) return;
         try {
             const response = await fetch(`/api/analytics/bookings/monthly/${cafeId}`);
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             const bookingData = await response.json();
-
             if (!bookingData || bookingData.length === 0) {
                 document.getElementById('bookingChart').parentElement.innerHTML = '<p class="text-yellow-500 text-center text-xl p-4">No monthly booking data available for this cafe yet.</p>';
                 return;
@@ -217,26 +248,30 @@
             const labels = allMonths;
             const data = Array.from(monthlyDataMap.values());
 
-            const chartConfig = {
-                type: 'line', data: { labels: labels, datasets: [{ label: 'Total Bookings', data: data, backgroundColor: 'rgba(139, 92, 246, 0.2)', borderColor: 'rgba(139, 92, 246, 1)', borderWidth: 3, fill: true, tension: 0.4, pointBackgroundColor: 'rgba(139, 92, 246, 1)', pointRadius: 5, pointHoverRadius: 8 }] },
-                options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: 'white', font: { size: 13, weight: 'bold' } } }, y: { beginAtZero: true, grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: 'white', font: { size: 13, weight: 'bold' }, stepSize: Math.max(1, Math.ceil(Math.max(...data) / 5)) }, title: { display: true, text: 'Number of Bookings', color: '#8b5cf6', font: { size: 14, weight: 'bold' } } } }, plugins: { legend: { display: false }, title: { display: true, text: `Total Annual Bookings: ${totalBookings}`, color: '#8b5cf6', font: { size: 16, weight: 'bold' }, position: 'top', align: 'start', padding: { bottom: 20 } }, tooltip: { backgroundColor: 'rgba(0, 0, 0, 0.8)', titleColor: '#8b5cf6', bodyColor: 'white', borderColor: '#8b5cf6', borderWidth: 1, cornerRadius: 8, displayColors: false, callbacks: { title: (ctx) => `📅 ${ctx[0].label}`, label: (ctx) => `Total Bookings: ${ctx.parsed.y}` } } } }
-            };
-            const ctx = document.getElementById('bookingChart').getContext('2d');
-            new Chart(ctx, chartConfig);
+            new Chart(document.getElementById('bookingChart').getContext('2d'), {
+                type: 'line',
+                data: { labels, datasets: [{ label: 'Total Bookings', data, backgroundColor: 'rgba(139, 92, 246, 0.2)', borderColor: 'rgba(139, 92, 246, 1)', borderWidth: 3, fill: true, tension: 0.4, pointBackgroundColor: 'rgba(139, 92, 246, 1)', pointRadius: 5, pointHoverRadius: 8 }] },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: 'white', font: { size: 13, weight: 'bold' } } },
+                        y: { beginAtZero: true, grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: 'white', font: { size: 13, weight: 'bold' }, stepSize: Math.max(1, Math.ceil(Math.max(...data) / 5)) } }
+                    },
+                    plugins: { legend: { display: false }, title: { display: true, text: `Total Annual Bookings: ${totalBookings}`, color: '#8b5cf6', font: { size: 16, weight: 'bold' }, position: 'top', align: 'start', padding: { bottom: 20 } } }
+                }
+            });
         } catch (error) {
-            console.error("Error fetching or rendering booking chart:", error);
-             document.getElementById('bookingChart').parentElement.innerHTML = `<p class="text-red-500 text-center text-xl p-4">Failed to load monthly booking data. Error: ${error.message}</p>`;
+            document.getElementById('bookingChart').parentElement.innerHTML = `<p class="text-red-500 text-center text-xl p-4">Failed to load monthly booking data. Error: ${error.message}</p>`;
         }
     }
 
-    // --- Peak Hour Analysis Chart ---
     async function fetchAndRenderHourlyBookingChart() {
         if (!cafeId) return;
         try {
             const response = await fetch(`/api/analytics/bookings/hourly/${cafeId}`);
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             const hourlyDataRaw = await response.json();
-
             if (!hourlyDataRaw || hourlyDataRaw.length === 0) {
                 document.getElementById('hourlyBookingChart').parentElement.innerHTML = '<p class="text-yellow-500 text-center text-xl p-4">No hourly booking data available yet.</p>';
                 return;
@@ -247,26 +282,30 @@
             let totalHourlyBookings = 0;
             hourlyDataRaw.forEach(item => { if (item.hour >= 0 && item.hour < 24) { data[item.hour] = item.count; totalHourlyBookings += item.count; } });
 
-            const chartConfig = {
-                type: 'bar', data: { labels: labels, datasets: [{ label: 'Bookings', data: data, backgroundColor: 'rgba(16, 185, 129, 0.6)', borderColor: 'rgba(16, 185, 129, 1)', borderWidth: 2, borderRadius: 4, }] },
-                options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: 'white', font: { size: 12, weight: 'bold' } }, title: { display: true, text: 'Hour of Day', color: '#10b981', font: { size: 14, weight: 'bold' } } }, y: { beginAtZero: true, grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: 'white', font: { size: 13, weight: 'bold' }, stepSize: Math.max(1, Math.ceil(Math.max(...data) / 5)) }, title: { display: true, text: 'Number of Bookings', color: '#10b981', font: { size: 14, weight: 'bold' } } } }, plugins: { legend: { display: false }, title: { display: true, text: `Total Bookings Recorded: ${totalHourlyBookings}`, color: '#10b981', font: { size: 16, weight: 'bold' }, position: 'top', align: 'start', padding: { bottom: 20 } }, tooltip: { backgroundColor: 'rgba(0, 0, 0, 0.8)', titleColor: '#10b981', bodyColor: 'white', borderColor: '#10b981', borderWidth: 1, cornerRadius: 8, displayColors: false, callbacks: { title: (ctx) => `🕒 ${ctx[0].label}`, label: (ctx) => `Total Bookings: ${ctx.parsed.y}` } } } }
-            };
-            const ctx = document.getElementById('hourlyBookingChart').getContext('2d');
-            new Chart(ctx, chartConfig);
+            new Chart(document.getElementById('hourlyBookingChart').getContext('2d'), {
+                type: 'bar',
+                data: { labels, datasets: [{ label: 'Bookings', data, backgroundColor: 'rgba(16, 185, 129, 0.6)', borderColor: 'rgba(16, 185, 129, 1)', borderWidth: 2, borderRadius: 4 }] },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: 'white', font: { size: 12, weight: 'bold' } } },
+                        y: { beginAtZero: true, grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: 'white', font: { size: 13, weight: 'bold' }, stepSize: Math.max(1, Math.ceil(Math.max(...data) / 5)) } }
+                    },
+                    plugins: { legend: { display: false }, title: { display: true, text: `Total Bookings Recorded: ${totalHourlyBookings}`, color: '#10b981', font: { size: 16, weight: 'bold' }, position: 'top', align: 'start', padding: { bottom: 20 } } }
+                }
+            });
         } catch (error) {
-            console.error("Error fetching or rendering hourly booking chart:", error);
-             document.getElementById('hourlyBookingChart').parentElement.innerHTML = `<p class="text-red-500 text-center text-xl p-4">Failed to load hourly analytics data. Error: ${error.message}</p>`;
+            document.getElementById('hourlyBookingChart').parentElement.innerHTML = `<p class="text-red-500 text-center text-xl p-4">Failed to load hourly analytics data. Error: ${error.message}</p>`;
         }
     }
 
-    // --- PC Utilization Chart ---
     async function fetchAndRenderPcUtilizationChart() {
         if (!cafeId) return;
         try {
             const response = await fetch(`/api/analytics/utilization/pc/${cafeId}`);
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             const utilizationData = await response.json();
-
             if (!utilizationData || utilizationData.length === 0) {
                 document.getElementById('pcUtilizationChart').parentElement.innerHTML = '<p class="text-yellow-500 text-center text-xl p-4">No PC utilization data available yet.</p>';
                 return;
@@ -274,62 +313,69 @@
 
             const labels = utilizationData.map(pc => `Seat ${pc.seatNumber}`);
             const data = utilizationData.map(pc => pc.utilizationPercentage.toFixed(1));
+            const backgroundColors = data.map(percentage => percentage > 75 ? 'rgba(239, 68, 68, 0.6)' : (percentage > 40 ? 'rgba(245, 158, 11, 0.6)' : 'rgba(34, 197, 94, 0.6)'));
+            const borderColors = data.map(percentage => percentage > 75 ? 'rgba(239, 68, 68, 1)' : (percentage > 40 ? 'rgba(245, 158, 11, 1)' : 'rgba(34, 197, 94, 1)'));
 
-            const backgroundColors = data.map(percentage => { if (percentage > 75) return 'rgba(239, 68, 68, 0.6)'; if (percentage > 40) return 'rgba(245, 158, 11, 0.6)'; return 'rgba(34, 197, 94, 0.6)'; });
-            const borderColors = data.map(percentage => { if (percentage > 75) return 'rgba(239, 68, 68, 1)'; if (percentage > 40) return 'rgba(245, 158, 11, 1)'; return 'rgba(34, 197, 94, 1)'; });
-
-            const chartConfig = {
-                type: 'bar', data: { labels: labels, datasets: [{ label: 'Utilization %', data: data, backgroundColor: backgroundColors, borderColor: borderColors, borderWidth: 2, borderRadius: 4 }] },
-                options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: 'white', font: { size: 12, weight: 'bold' } } }, y: { beginAtZero: true, max: 100, grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: 'white', font: { size: 13, weight: 'bold' }, callback: value => value + '%' }, title: { display: true, text: 'Utilization Percentage', color: '#facc15', font: { size: 14, weight: 'bold' } } } }, plugins: { legend: { display: false }, title: { display: true, text: 'PC Booking Utilization Rate', color: '#facc15', font: { size: 16, weight: 'bold' }, position: 'top', align: 'start', padding: { bottom: 20 } }, tooltip: { backgroundColor: 'rgba(0, 0, 0, 0.8)', titleColor: '#facc15', bodyColor: 'white', borderColor: '#facc15', borderWidth: 1, cornerRadius: 8, displayColors: false, callbacks: { title: (ctx) => `💻 ${ctx[0].label}`, label: (ctx) => { const pcInfo = utilizationData[ctx.dataIndex]; return [`Utilization: ${ctx.parsed.y}%`, `Booked Slots: ${pcInfo.bookedSlots}`, `Total Slots: ${pcInfo.totalSlots}`]; } } } } }
-            };
-            const ctx = document.getElementById('pcUtilizationChart').getContext('2d');
-            new Chart(ctx, chartConfig);
+            new Chart(document.getElementById('pcUtilizationChart').getContext('2d'), {
+                type: 'bar',
+                data: { labels, datasets: [{ label: 'Utilization %', data, backgroundColor: backgroundColors, borderColor: borderColors, borderWidth: 2, borderRadius: 4 }] },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: 'white', font: { size: 12, weight: 'bold' } } },
+                        y: { beginAtZero: true, max: 100, grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: 'white', font: { size: 13, weight: 'bold' }, callback: value => value + '%' } }
+                    },
+                    plugins: { legend: { display: false }, title: { display: true, text: 'PC Booking Utilization Rate', color: '#facc15', font: { size: 16, weight: 'bold' }, position: 'top', align: 'start', padding: { bottom: 20 } } }
+                }
+            });
         } catch (error) {
-            console.error("Error fetching or rendering PC utilization chart:", error);
-             document.getElementById('pcUtilizationChart').parentElement.innerHTML = `<p class="text-red-500 text-center text-xl p-4">Failed to load PC utilization data. Error: ${error.message}</p>`;
+            document.getElementById('pcUtilizationChart').parentElement.innerHTML = `<p class="text-red-500 text-center text-xl p-4">Failed to load PC utilization data. Error: ${error.message}</p>`;
         }
     }
 
-    // --- Revenue Per PC Chart ---
     async function fetchAndRenderPcRevenueChart() {
         if (!cafeId) return;
         try {
             const response = await fetch(`/api/analytics/revenue/pc/${cafeId}`);
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             const revenueData = await response.json();
-
-             if (!revenueData || revenueData.length === 0) {
-                 document.getElementById('pcRevenueChart').parentElement.innerHTML = '<p class="text-yellow-500 text-center text-xl p-4">No PC revenue data available yet (likely no bookings found).</p>';
-                 return;
-             }
+            if (!revenueData || revenueData.length === 0) {
+                document.getElementById('pcRevenueChart').parentElement.innerHTML = '<p class="text-yellow-500 text-center text-xl p-4">No PC revenue data available yet (likely no bookings found).</p>';
+                return;
+            }
 
             const labels = revenueData.map(pc => `Seat ${pc.seatNumber}`);
             const data = revenueData.map(pc => pc.totalRevenue.toFixed(2));
             const totalRevenue = revenueData.reduce((sum, pc) => sum + pc.totalRevenue, 0);
 
-            const chartConfig = {
-                type: 'bar', data: { labels: labels, datasets: [{ label: 'Revenue (INR)', data: data, backgroundColor: 'rgba(96, 165, 250, 0.6)', borderColor: 'rgba(96, 165, 250, 1)', borderWidth: 2, borderRadius: 4 }] },
-                options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: 'white', font: { size: 12, weight: 'bold' } } }, y: { beginAtZero: true, grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: 'white', font: { size: 13, weight: 'bold' }, callback: value => `₹${value}` }, title: { display: true, text: 'Total Revenue (INR)', color: '#60a5fa', font: { size: 14, weight: 'bold' } } } }, plugins: { legend: { display: false }, title: { display: true, text: `Total Estimated Revenue: ₹${totalRevenue.toFixed(2)}`, color: '#60a5fa', font: { size: 16, weight: 'bold' }, position: 'top', align: 'start', padding: { bottom: 20 } }, tooltip: { backgroundColor: 'rgba(0, 0, 0, 0.8)', titleColor: '#60a5fa', bodyColor: 'white', borderColor: '#60a5fa', borderWidth: 1, cornerRadius: 8, displayColors: false, callbacks: { title: (ctx) => `💰 ${ctx[0].label}`, label: (ctx) => { const pcInfo = revenueData[ctx.dataIndex]; return [`Revenue: ₹${ctx.parsed.y.toFixed(2)}`, `Booked Hours: ${pcInfo.bookedHours}`]; } } } } }
-            };
-            const ctx = document.getElementById('pcRevenueChart').getContext('2d');
-            new Chart(ctx, chartConfig);
+            new Chart(document.getElementById('pcRevenueChart').getContext('2d'), {
+                type: 'bar',
+                data: { labels, datasets: [{ label: 'Revenue (INR)', data, backgroundColor: 'rgba(96, 165, 250, 0.6)', borderColor: 'rgba(96, 165, 250, 1)', borderWidth: 2, borderRadius: 4 }] },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: 'white', font: { size: 12, weight: 'bold' } } },
+                        y: { beginAtZero: true, grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: 'white', font: { size: 13, weight: 'bold' }, callback: value => `₹${value}` } }
+                    },
+                    plugins: { legend: { display: false }, title: { display: true, text: `Total Estimated Revenue: ₹${totalRevenue.toFixed(2)}`, color: '#60a5fa', font: { size: 16, weight: 'bold' }, position: 'top', align: 'start', padding: { bottom: 20 } } }
+                }
+            });
         } catch (error) {
-            console.error("Error fetching or rendering PC revenue chart:", error);
-             document.getElementById('pcRevenueChart').parentElement.innerHTML = `<p class="text-red-500 text-center text-xl p-4">Failed to load PC revenue data. Error: ${error.message}</p>`;
+            document.getElementById('pcRevenueChart').parentElement.innerHTML = `<p class="text-red-500 text-center text-xl p-4">Failed to load PC revenue data. Error: ${error.message}</p>`;
         }
     }
 
-    // --- Call all functions on page load ---
     document.addEventListener('DOMContentLoaded', () => {
-         if (cafeId !== null) { // Only fetch data if cafeId is valid
+        if (cafeId !== null) {
             fetchAndRenderGameChart();
             fetchAndRenderBookingChart();
             fetchAndRenderHourlyBookingChart();
             fetchAndRenderPcUtilizationChart();
             fetchAndRenderPcRevenueChart();
         } else {
-             // Optionally display a general error message if cafeId couldn't be determined
-             document.querySelector('.container').innerHTML = '<p class="text-red-500 text-center text-xl p-4">Error: Could not identify the Cafe for analytics.</p>';
+            document.querySelector('.analytics-container').innerHTML = '<p class="text-red-500 text-center text-xl p-4">Error: Could not identify the Cafe for analytics.</p>';
         }
     });
 </script>

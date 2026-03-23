@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Receipt</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {'neon-cyan':'#00ffff','neon-purple':'#8b5cf6','neon-green':'#10b981','dark-bg':'#0a0a0a','dark-secondary':'#1a1a1a'},
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" th:href="@{'/css/style.css'}">
+</head>
+<body class="bg-dark-bg text-white pt-24">
+<div th:replace="~{fragments/owner-navbar :: ownerNavbar('cafes')}"></div>
+
+<main class="p-8">
+    <div class="mb-8 flex items-center justify-between">
+        <h1 class="font-orbitron text-4xl font-bold text-neon-purple">Booking Receipt</h1>
+        <button onclick="history.back()" class="rounded-lg border border-neon-cyan/20 bg-dark-secondary px-5 py-3 font-semibold text-gray-200 hover:text-neon-cyan">Back</button>
+    </div>
+
+    <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
+        <section class="rounded-xl border border-neon-cyan/20 bg-dark-secondary p-8">
+            <h2 class="mb-6 font-orbitron text-2xl text-neon-cyan">Customer Details</h2>
+            <div class="space-y-4 text-lg">
+                <div class="flex justify-between gap-6"><span class="text-gray-400">Name</span><span class="font-semibold text-white" th:text="${receipt.customerName ?: 'Guest / Not captured'}"></span></div>
+                <div class="flex justify-between gap-6"><span class="text-gray-400">Email</span><span class="font-semibold text-white" th:text="${receipt.customerEmail ?: 'Not available'}"></span></div>
+                <div class="flex justify-between gap-6"><span class="text-gray-400">Phone</span><span class="font-semibold text-white" th:text="${receipt.customerPhone ?: 'Not available'}"></span></div>
+            </div>
+        </section>
+
+        <section class="rounded-xl border border-neon-cyan/20 bg-dark-secondary p-8">
+            <h2 class="mb-6 font-orbitron text-2xl text-neon-cyan">Booking Details</h2>
+            <div class="space-y-4 text-lg">
+                <div class="flex justify-between gap-6"><span class="text-gray-400">Booking ID</span><span class="font-semibold text-white" th:text="${receipt.bookingId}"></span></div>
+                <div class="flex justify-between gap-6"><span class="text-gray-400">Cafe</span><span class="font-semibold text-white" th:text="${receipt.cafeName}"></span></div>
+                <div class="flex justify-between gap-6"><span class="text-gray-400">Seat</span><span class="font-semibold text-white" th:text="${receipt.seatNumber}"></span></div>
+                <div class="flex justify-between gap-6"><span class="text-gray-400">Date</span><span class="font-semibold text-white" th:text="${#temporals.format(receipt.bookingDate, 'dd-MMM-yyyy')}"></span></div>
+                <div class="flex justify-between gap-6"><span class="text-gray-400">Time</span><span class="font-semibold text-white" th:text="${#temporals.format(receipt.startTime, 'hh:mm a')} + ' - ' + ${#temporals.format(receipt.endTime, 'hh:mm a')}"></span></div>
+                <div class="flex justify-between gap-6"><span class="text-gray-400">Status</span><span class="font-semibold text-neon-green" th:text="${receipt.status}"></span></div>
+            </div>
+        </section>
+    </div>
+</main>
+</body>
+</html>
