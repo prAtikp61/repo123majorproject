@@ -89,7 +89,7 @@
 <!-- Cafe Header -->
 <header class="pt-32 pb-16 bg-dark-secondary text-center relative overflow-hidden">
     <div class="absolute inset-0">
-        <img th:src="${cafe.cafeImage}" alt="Cafe Image"
+        <img th:src="${#strings.isEmpty(cafe.cafeImage) or cafe.cafeImage == '.' ? '/images/cafe1.jpeg' : cafe.cafeImage}" alt="Cafe Image"
              class="w-full h-full object-cover opacity-20" />
     </div>
 
@@ -165,6 +165,52 @@
 
     <!-- Right Column: About and Amenities -->
     <aside class="lg:col-span-1 space-y-12">
+        <section class="rounded-2xl border border-neon-cyan/20 bg-dark-secondary p-6">
+            <h3 class="font-orbitron font-bold text-2xl text-glow text-neon-purple mb-4">Smart Session Optimizer</h3>
+            <p class="text-gray-400 mb-5">Check demand-driven pricing and session suggestions before you book.</p>
+
+            <div class="space-y-4" id="optimizerWidget" th:attr="data-cafe-id=${cafe.id}">
+                <div>
+                    <label for="optBookingDate" class="block text-sm font-semibold text-gray-300">Booking Date</label>
+                    <input id="optBookingDate" type="date" class="mt-2 w-full rounded-lg border border-neon-cyan/30 bg-dark-bg px-4 py-2 text-white">
+                </div>
+                <div>
+                    <label for="optTimeSlot" class="block text-sm font-semibold text-gray-300">Time Slot</label>
+                    <select id="optTimeSlot" class="mt-2 w-full rounded-lg border border-neon-cyan/30 bg-dark-bg px-4 py-2 text-white">
+                        <option value="">Select a slot</option>
+                        <option th:each="slotHour : ${optimizationSlots}" th:value="${slotHour}" th:text="${slotHour + ':00'}">10:00</option>
+                    </select>
+                </div>
+                <button id="runOptimizer" type="button" class="btn-gaming w-full rounded-lg py-3 font-semibold">Check Smart Pricing</button>
+
+                <div id="optimizerResult" class="hidden rounded-xl border border-neon-cyan/20 bg-dark-bg p-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-400">Demand Level</span>
+                        <span id="optDemandLevel" class="font-orbitron text-neon-cyan">Moderate</span>
+                    </div>
+                    <div class="mt-3 grid grid-cols-2 gap-3 text-sm">
+                        <div class="rounded-lg bg-dark-secondary p-3">
+                            <div class="text-gray-400">Predicted</div>
+                            <div id="optPredicted" class="mt-1 text-xl font-bold text-white">0</div>
+                        </div>
+                        <div class="rounded-lg bg-dark-secondary p-3">
+                            <div class="text-gray-400">Real Demand</div>
+                            <div id="optReal" class="mt-1 text-xl font-bold text-white">0</div>
+                        </div>
+                        <div class="rounded-lg bg-dark-secondary p-3">
+                            <div class="text-gray-400">Price</div>
+                            <div id="optPrice" class="mt-1 text-xl font-bold text-neon-green">₹0</div>
+                        </div>
+                        <div class="rounded-lg bg-dark-secondary p-3">
+                            <div class="text-gray-400">Suggested Session</div>
+                            <div id="optDuration" class="mt-1 text-xl font-bold text-white">0 hrs</div>
+                        </div>
+                    </div>
+                    <p id="optMessage" class="mt-4 text-sm text-gray-300"></p>
+                </div>
+            </div>
+        </section>
+
         <!-- About Section -->
         <section>
             <h3 class="font-orbitron font-bold text-2xl text-glow text-neon-purple mb-4">About Us</h3>
@@ -267,5 +313,6 @@
 </footer>
 
 <script th:src="@{'/js/script.js'}" defer></script>
+<script th:src="@{'/js/optimization-widget.js'}" defer></script>
 </body>
 </html>

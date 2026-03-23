@@ -23,6 +23,20 @@ public interface UserBookingRepository extends JpaRepository<UserBooking, Long> 
             Long slotId, BookingStatus pending, LocalDateTime currentTime
     );
 
+    Optional<UserBooking> findBySlotIdAndBookingDateAndStatusAndExpirationTimeAfter(
+            Long slotId, LocalDate bookingDate, BookingStatus pending, LocalDateTime currentTime
+    );
+
+    boolean existsBySlotId(Long slotId);
+
+    boolean existsBySlotIdAndBookingDateAndStatus(Long slotId, LocalDate bookingDate, BookingStatus status);
+
+    boolean existsByPcCafeId(Long cafeId);
+
+    List<UserBooking> findByPcCafeIdAndBookingDateAndStatusIn(Long cafeId, LocalDate bookingDate, List<BookingStatus> statuses);
+
+    List<UserBooking> findBySlotPcIdAndBookingDateAndStatusIn(Long pcId, LocalDate bookingDate, List<BookingStatus> statuses);
+
     @Query("SELECT b FROM UserBooking b WHERE b.slot.id IN :slotIds AND (b.status = :bookedStatus OR (b.status = :pendingStatus AND b.expirationTime > :currentTime))")
     List<UserBooking> findActiveBookingsForSlots(
             @Param("slotIds") List<Long> slotIds,

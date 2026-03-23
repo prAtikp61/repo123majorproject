@@ -37,6 +37,11 @@
     </div>
 </aside>
 <main class="flex-1 p-8">
+    <div class="mb-6 flex flex-wrap gap-3 rounded-xl border border-neon-cyan/20 bg-dark-secondary p-4">
+        <a th:href="@{/owner/}" class="rounded-lg bg-dark-bg px-4 py-2 font-semibold text-gray-200 hover:text-neon-cyan">Dashboard</a>
+        <a th:href="@{/owner/cafes}" class="rounded-lg bg-dark-bg px-4 py-2 font-semibold text-gray-200 hover:text-neon-cyan">Manage Cafes</a>
+        <a th:href="@{/owner/addSlots/{pcId}(pcId=${pcId})}" class="rounded-lg bg-neon-cyan/10 px-4 py-2 font-semibold text-neon-cyan">Add Slots</a>
+    </div>
     <h1 class="font-orbitron text-4xl font-bold text-neon-purple mb-8">Add Slots for PC</h1>
     <form th:action="@{/owner/addSlots/{pcId}(pcId=${pcId})}" th:object="${slotDto}" method="post" class="max-w-xl mx-auto bg-dark-secondary p-8 rounded-xl border border-neon-purple/20 space-y-6">
         <div id="slots-container" class="space-y-4">
