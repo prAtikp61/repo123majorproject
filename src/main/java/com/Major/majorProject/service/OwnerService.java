@@ -25,9 +25,10 @@ public class OwnerService {
     private final UserBookingRepository userBookingRepository;
     private final UserRepository userRepository;
     private final SlotRepository slotRepository;
+    private final OfflineBookingRepository offlineBookingRepository;
     private final ImageService imageService;
 
-    public OwnerService(CafeOwnerRepository cor, PasswordEncoder pe, CafeRepository cr, PCRepository pcr, UserBookingRepository ubr, UserRepository ur, SlotRepository slotRepository, ImageService is) {
+    public OwnerService(CafeOwnerRepository cor, PasswordEncoder pe, CafeRepository cr, PCRepository pcr, UserBookingRepository ubr, UserRepository ur, SlotRepository slotRepository, OfflineBookingRepository offlineBookingRepository, ImageService is) {
         this.cafeOwnerRepository = cor;
         this.passwordEncoder = pe;
         this.cafeRepository = cr;
@@ -35,6 +36,7 @@ public class OwnerService {
         this.userBookingRepository = ubr;
         this.userRepository = ur;
         this.slotRepository = slotRepository;
+        this.offlineBookingRepository = offlineBookingRepository;
         this.imageService = is;
     }
 
@@ -47,10 +49,26 @@ public class OwnerService {
         cafeOwnerRepository.save(owner);
     }
 
-    public void cafeAddition(CafeAdditionDto cad) {
+    private CafeOwner getCurrentOwner() {
         String ownerEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        CafeOwner owner = cafeOwnerRepository.findByEmail(ownerEmail)
+        return cafeOwnerRepository.findByEmail(ownerEmail)
                 .orElseThrow(() -> new RuntimeException("Owner not found"));
+    }
+
+    private Cafe getOwnedCafe(long cafeId) {
+        CafeOwner owner = getCurrentOwner();
+        Cafe cafe = cafeRepository.findById(cafeId)
+                .orElseThrow(() -> new RuntimeException("Cafe not found with ID: " + cafeId));
+
+        if (cafe.getOwner() == null || !cafe.getOwner().getId().equals(owner.getId())) {
+            throw new RuntimeException("You do not have access to this cafe.");
+        }
+
+        return cafe;
+    }
+
+    public void cafeAddition(CafeAdditionDto cad) {
+        CafeOwner owner = getCurrentOwner();
 
         String filename = UUID.randomUUID().toString();
         String fileURL = imageService.uploadImage(cad.getCafeImageFile(), filename);
@@ -61,8 +79,53 @@ public class OwnerService {
         cafe.setCloseTime(cad.getCloseTime());
         cafe.setHourlyRate(cad.getHourlyRate());
         cafe.setCafeImage(fileURL);
+        cafe.setAmenities(parseAmenities(cad.getAmenitiesInput()));
         cafe.setOwner(owner);
         cafeRepository.save(cafe);
+    }
+
+    public CafeAdditionDto getCafeForEdit(long cafeId) {
+        Cafe cafe = getOwnedCafe(cafeId);
+        CafeAdditionDto dto = new CafeAdditionDto();
+        dto.setId(cafe.getId());
+        dto.setName(cafe.getName());
+        dto.setAddress(cafe.getAddress());
+        dto.setOpenTime(cafe.getOpenTime());
+        dto.setCloseTime(cafe.getCloseTime());
+        dto.setHourlyRate(cafe.getHourlyRate());
+        dto.setCafeImage(cafe.getCafeImage());
+        dto.setAmenities(cafe.getAmenities());
+        dto.setAmenitiesInput(String.join(", ", cafe.getAmenities()));
+        return dto;
+    }
+
+    @Transactional
+    public void updateCafe(long cafeId, CafeAdditionDto dto) {
+        Cafe cafe = getOwnedCafe(cafeId);
+        cafe.setName(dto.getName());
+        cafe.setAddress(dto.getAddress());
+        cafe.setOpenTime(dto.getOpenTime());
+        cafe.setCloseTime(dto.getCloseTime());
+        cafe.setHourlyRate(dto.getHourlyRate());
+        cafe.setAmenities(parseAmenities(dto.getAmenitiesInput()));
+
+        if (dto.getCafeImageFile() != null && !dto.getCafeImageFile().isEmpty()) {
+            String fileURL = imageService.uploadImage(dto.getCafeImageFile(), UUID.randomUUID().toString());
+            if (fileURL != null && !fileURL.isBlank()) {
+                cafe.setCafeImage(fileURL);
+            }
+        }
+
+        cafeRepository.save(cafe);
+    }
+
+    @Transactional
+    public void deleteCafe(long cafeId) {
+        Cafe cafe = getOwnedCafe(cafeId);
+        if (userBookingRepository.existsByPcCafeId(cafeId)) {
+            throw new RuntimeException("Cannot delete a cafe that has booking history.");
+        }
+        cafeRepository.delete(cafe);
     }
 
     public CafeOwner findByEmail(String email) {
@@ -71,9 +134,7 @@ public class OwnerService {
     }
 
     public List<CafeAdditionDto> getAllCafeOfOwner() {
-        String ownerEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        CafeOwner owner = cafeOwnerRepository.findByEmail(ownerEmail)
-                .orElseThrow(() -> new RuntimeException("Owner not found"));
+        CafeOwner owner = getCurrentOwner();
 
         if (owner.getCafes() == null) {
             return Collections.emptyList();
@@ -88,9 +149,10 @@ public class OwnerService {
             dto.setCloseTime(cafe.getCloseTime());
             dto.setHourlyRate(cafe.getHourlyRate());
             dto.setCafeImage(cafe.getCafeImage());
+            dto.setAmenities(cafe.getAmenities());
             // Calculate available PCs
             long availableCount = cafe.getPcs().stream()
-                    .map(pc -> getPcAvailability(pc.getId()))
+                    .map(pc -> getAccuratePcAvailability(pc.getId()))
                     .filter(status -> status.equals("Available"))
                     .count();
             dto.setAvailablePcs((int) availableCount);
@@ -113,11 +175,12 @@ public class OwnerService {
             dto.setCloseTime(cafe.getCloseTime());
             dto.setHourlyRate(cafe.getHourlyRate());
             long availableCount = cafe.getPcs().stream()
-                    .map(pc -> getPcAvailability(pc.getId()))
+                    .map(pc -> getAccuratePcAvailability(pc.getId()))
                     .filter(status -> status.equals("Available"))
                     .count();
             dto.setAvailablePcs((int) availableCount);
             dto.setCafeImage(cafe.getCafeImage());
+            dto.setAmenities(cafe.getAmenities());
             return dto;
         }).collect(Collectors.toList());
     }
@@ -133,6 +196,7 @@ public class OwnerService {
         dto.setCloseTime(cafe.getCloseTime());
         dto.setHourlyRate(cafe.getHourlyRate());
         dto.setCafeImage(cafe.getCafeImage());
+        dto.setAmenities(cafe.getAmenities());
         return dto;
     }
 
@@ -317,7 +381,7 @@ public class OwnerService {
         return pcRepository.findById(pcId).orElse(null);
     }
 
-    public List<SlotDetails> getSlotsForPC(long pcId) {
+    public List<SlotDetails> getSlotsForPC(long pcId, LocalDate selectedDate) {
         List<Slot> savedSlots = slotRepository.findByPcId(pcId);
 
         if (savedSlots.isEmpty()) {
@@ -335,12 +399,18 @@ public class OwnerService {
                     details.setEndTime(slot.getEndTime());
                     details.setCafeId(cafeId);
 
-                    // CORRECTED STATUS LOGIC:
-                    // The status now only depends on whether the slot is booked
-                    // or if its end time is before the current time today.
-                    if (slot.isBooked()) {
+                    boolean isBookedForSelectedDate = userBookingRepository.existsBySlotIdAndBookingDateAndStatus(
+                            slot.getId(), selectedDate, UserBooking.BookingStatus.BOOKED);
+                    if (isBookedForSelectedDate) {
                         details.setStatus("booked");
-                    } else if (slot.getEndTime().isBefore(LocalTime.now())) {
+                        userBookingRepository.findBySlotIdAndBookingDateAndStatusInOrderByIdDesc(
+                                        slot.getId(),
+                                        selectedDate,
+                                        List.of(UserBooking.BookingStatus.BOOKED, UserBooking.BookingStatus.NO_SHOW))
+                                .stream()
+                                .findFirst()
+                                .ifPresent(booking -> details.setBookingId(booking.getId()));
+                    } else if (selectedDate.equals(LocalDate.now()) && slot.getEndTime().isBefore(LocalTime.now())) {
                         details.setStatus("past");
                     } else {
                         details.setStatus("open");
@@ -349,6 +419,28 @@ public class OwnerService {
                 })
                 .sorted(Comparator.comparing(SlotDetails::getStartTime))
                 .collect(Collectors.toList());
+    }
+
+    public BookingReceiptDto getBookingReceiptForOwner(Long bookingId) {
+        UserBooking booking = userBookingRepository.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
+
+        getOwnedCafe(booking.getPc().getCafe().getId());
+
+        BookingReceiptDto dto = new BookingReceiptDto();
+        dto.setBookingId(booking.getId());
+        dto.setCafeName(booking.getPc().getCafe().getName());
+        dto.setSeatNumber(booking.getPc().getSeatNumber());
+        dto.setBookingDate(booking.getBookingDate());
+        dto.setStartTime(booking.getStartTime());
+        dto.setEndTime(booking.getEndTime());
+        dto.setStatus(booking.getStatus().name());
+        if (booking.getUser() != null) {
+            dto.setCustomerName(booking.getUser().getName());
+            dto.setCustomerEmail(booking.getUser().getEmail());
+            dto.setCustomerPhone(booking.getUser().getPhone());
+        }
+        return dto;
     }
 
     @Transactional
@@ -371,6 +463,69 @@ public class OwnerService {
 
             slotRepository.save(slot);
         }
+    }
+
+    @Transactional
+    public void updateSlot(Long slotId, LocalTime startTime) {
+        Slot slot = slotRepository.findById(slotId)
+                .orElseThrow(() -> new RuntimeException("PC not found with id: " + slotId));
+
+        if (userBookingRepository.existsBySlotIdAndStatusIn(
+                slotId,
+                List.of(UserBooking.BookingStatus.BOOKED, UserBooking.BookingStatus.PENDING)
+        )) {
+            throw new RuntimeException("Cannot edit a slot that has an active booking. Mark it as no-show first if the user did not arrive.");
+        }
+
+        slot.setStartTime(startTime);
+        slot.setEndTime(startTime.plusHours(1));
+        slotRepository.save(slot);
+    }
+
+    @Transactional
+    public void deleteSlot(Long slotId) {
+        if (userBookingRepository.existsBySlotIdAndStatusIn(
+                slotId,
+                List.of(UserBooking.BookingStatus.BOOKED, UserBooking.BookingStatus.PENDING)
+        )) {
+            throw new RuntimeException("Cannot delete a slot that has an active booking. Mark it as no-show first if the user did not arrive.");
+        }
+
+        slotRepository.deleteById(slotId);
+    }
+
+    @Transactional
+    public void markNoShowAndAddWalkIn(Long slotId, LocalDate bookingDate) {
+        Slot slot = slotRepository.findById(slotId)
+                .orElseThrow(() -> new RuntimeException("Slot not found with id: " + slotId));
+
+        LocalDate selectedDate = bookingDate != null ? bookingDate : LocalDate.now();
+        UserBooking booking = userBookingRepository.findBySlotIdAndBookingDateAndStatus(
+                        slotId, selectedDate, UserBooking.BookingStatus.BOOKED)
+                .orElseThrow(() -> new RuntimeException("No confirmed booking found for this slot on the selected date."));
+
+        booking.setStatus(UserBooking.BookingStatus.NO_SHOW);
+        userBookingRepository.save(booking);
+
+        OfflineBooking walkIn = new OfflineBooking();
+        walkIn.setCafe(slot.getPc().getCafe());
+        walkIn.setBookingDate(selectedDate);
+        walkIn.setTimeSlot(slot.getStartTime().getHour());
+        walkIn.setCustomerCount(1);
+        walkIn.setNotes("Walk-in replacement after no-show for PC " + slot.getPc().getSeatNumber());
+        offlineBookingRepository.save(walkIn);
+    }
+
+    private List<String> parseAmenities(String amenitiesInput) {
+        if (amenitiesInput == null || amenitiesInput.isBlank()) {
+            return new ArrayList<>();
+        }
+
+        return Arrays.stream(amenitiesInput.split(","))
+                .map(String::trim)
+                .filter(value -> !value.isBlank())
+                .distinct()
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
 }

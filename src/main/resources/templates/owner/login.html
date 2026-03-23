@@ -9,15 +9,63 @@
         tailwind.config = {
             theme: {
                 extend: {
-                    colors: {'neon-cyan':'#00ffff','neon-purple':'#8b5cf6','dark-bg':'#0a0a0a','dark-secondary':'#1a1a1a'},
+                    colors: {
+                        'neon-cyan': '#00ffff',
+                        'neon-purple': '#8b5cf6',
+                        'neon-green': '#10b981',
+                        'dark-bg': '#0a0a0a',
+                        'dark-secondary': '#1a1a1a',
+                        'dark-tertiary': '#2a2a2a'
+                    },
+                    animation: {
+                        'glow': 'glow 2s ease-in-out infinite alternate',
+                        'float': 'float 3s ease-in-out infinite',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+                    },
+                    keyframes: {
+                        glow: {
+                            '0%': { boxShadow: '0 0 5px #00ffff, 0 0 10px #00ffff, 0 0 15px #00ffff' },
+                            '100%': { boxShadow: '0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 30px #00ffff' }
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-10px)' }
+                        }
+                    }
                 }
             }
         }
     </script>
     <link rel="stylesheet" th:href="@{'/css/style.css'}">
 </head>
-<body class="bg-dark-bg text-white">
-<div class="min-h-screen flex items-center justify-center p-4 hero-bg ">
+<body class="bg-dark-bg text-white font-rajdhani">
+<nav class="fixed top-0 w-full bg-dark-secondary/90 backdrop-blur-md border-b border-neon-cyan/20 z-50">
+    <div class="container mx-auto px-6 py-4">
+        <div class="flex items-center justify-between">
+            <a th:href="@{/landing}" class="flex items-center space-x-2">
+                <div class="w-10 h-10 bg-gradient-to-r from-neon-purple to-neon-cyan rounded-lg flex items-center justify-center animate-glow">
+                    <span class="font-orbitron font-bold text-lg">PS</span>
+                </div>
+                <span class="font-orbitron font-bold text-xl text-glow-1 text-neon-cyan">Smart PS Lounge</span>
+            </a>
+
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="/landing#home" class="hover:text-neon-cyan transition-colors duration-300">Home</a>
+                <a href="/landing#gamers" class="hover:text-neon-cyan transition-colors duration-300">For Gamers</a>
+                <a href="/landing#owners" class="hover:text-neon-cyan transition-colors duration-300">For Owners</a>
+                <a href="/landing#analytics" class="hover:text-neon-cyan transition-colors duration-300">Analytics</a>
+            </div>
+
+            <div class="flex items-center space-x-4">
+                <a th:href="@{/user/findcafe}" class="btn-gaming px-6 py-2 text-white font-semibold rounded-lg">
+                    Book Now
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="min-h-screen flex items-center justify-center p-4 hero-bg pt-28">
     <div class="w-full max-w-md p-8 space-y-8 bg-dark-secondary/80 backdrop-blur-sm border border-neon-cyan/20 rounded-2xl shadow-2xl shadow-neon-cyan/10">
         <div class="text-center">
             <h1 class="font-orbitron font-bold text-3xl text-glow text-neon-cyan">Owner Portal</h1>

@@ -28,9 +28,15 @@
     <link rel="stylesheet" th:href="@{'/css/style.css'}">
     <link rel="stylesheet" th:href="@{'/css/booking-enhanced.css'}">
 </head>
-<body class="bg-dark-bg text-white font-rajdhani flex items-center justify-center min-h-screen">
+<body class="bg-dark-bg text-white font-rajdhani min-h-screen py-10">
 
-<div class="glass-effect p-8 rounded-xl border border-neon-cyan/20 w-full max-w-lg mx-4">
+<div class="mx-auto mb-6 flex max-w-5xl flex-wrap gap-3 rounded-xl border border-neon-cyan/20 bg-dark-secondary p-4">
+    <a th:href="@{'/landing'}" class="rounded-lg bg-dark-bg px-4 py-2 font-semibold text-gray-200 hover:text-neon-cyan">Home</a>
+    <a th:href="@{'/user/findcafe'}" class="rounded-lg bg-dark-bg px-4 py-2 font-semibold text-gray-200 hover:text-neon-cyan">All Cafes</a>
+    <button type="button" onclick="history.back()" class="rounded-lg bg-neon-cyan/10 px-4 py-2 font-semibold text-neon-cyan">Previous Page</button>
+</div>
+
+<div class="glass-effect p-8 rounded-xl border border-neon-cyan/20 w-full max-w-lg mx-auto">
     <div class="text-center mb-6">
         <h1 class="font-orbitron text-3xl font-bold text-glow text-neon-cyan">Confirm Your Slot</h1>
         <div class="countdown-box mt-3">
@@ -62,7 +68,7 @@
         </div>
     </div>
 
-    <form th:action="@{/payments/create-checkout}" method="post">
+    <form th:action="@{/payments/create-checkout}" method="post" id="checkout-form">
         
         <input type="hidden" name="bookingId" th:value="${booking.id}" />
 
@@ -125,6 +131,17 @@
                 Proceed to Payment
             </button>
         </div>
+    </form>
+
+    <form th:action="@{/payments/dev-bypass}" method="post" id="bypass-form" class="mt-4">
+        <input type="hidden" name="bookingId" th:value="${booking.id}" />
+        <input type="hidden" name="customerName" id="bypassName">
+        <input type="hidden" name="customerEmail" id="bypassEmail">
+        <input type="hidden" name="customerPhone" id="bypassPhone">
+        <input type="hidden" name="preferredGames" id="bypassGames">
+        <button type="submit" class="w-full rounded-lg border border-yellow-400/40 bg-yellow-400/10 py-3 font-semibold text-yellow-300">
+            Test Payment Bypass
+        </button>
     </form>
 </div>
 
@@ -265,6 +282,16 @@
         }
     });
     
+    const checkoutForm = document.getElementById('checkout-form');
+    const bypassForm = document.getElementById('bypass-form');
+
+    bypassForm.addEventListener('submit', () => {
+        document.getElementById('bypassName').value = checkoutForm.customerName.value;
+        document.getElementById('bypassEmail').value = checkoutForm.customerEmail.value;
+        document.getElementById('bypassPhone').value = checkoutForm.customerPhone.value;
+        document.getElementById('bypassGames').value = preferredGamesHiddenInput.value;
+    });
+
     // Initial fetch of games when the page loads
     fetchGames();
 
