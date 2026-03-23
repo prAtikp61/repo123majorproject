@@ -37,8 +37,7 @@ public class DataSeeder {
     private static final List<String> IMAGE_POOL = List.of(
             "/images/cafe1.jpeg",
             "/images/cafe2.jpg",
-            "/images/cafe3.jpg",
-            "/images/dashboard.jpg"
+            "/images/cafe3.jpg"
     );
 
     private static final List<String> GAME_POOL = List.of(
@@ -160,27 +159,27 @@ public class DataSeeder {
 
     private List<Cafe> seedCafes(CafeRepository repository, List<CafeOwner> owners) {
         List<String[]> cafeSpecs = List.of(
-                new String[]{"Arena PS Lounge", "FC Road, Pune", "10:00", "22:00", "120"},
-                new String[]{"Midnight Console Hub", "Baner, Pune", "11:00", "23:00", "150"},
-                new String[]{"Elite Gamer Spot", "Koregaon Park, Pune", "10:00", "23:00", "140"},
-                new String[]{"Respawn Republic", "Viman Nagar, Pune", "09:00", "22:00", "110"},
-                new String[]{"Victory Vault", "Aundh, Pune", "10:00", "22:00", "125"},
-                new String[]{"Trigger Zone", "Hadapsar, Pune", "11:00", "23:00", "135"},
-                new String[]{"Joystick Junction", "Kothrud, Pune", "10:00", "21:00", "100"},
-                new String[]{"Pixel Playhouse", "Wakad, Pune", "09:00", "22:00", "115"},
-                new String[]{"PowerUp Lounge", "Pimpri, Pune", "10:00", "22:00", "118"},
-                new String[]{"Checkpoint Cafe", "Nigdi, Pune", "10:00", "23:00", "145"},
-                new String[]{"Lag Free Arena", "Hinjewadi Phase 1, Pune", "09:00", "23:00", "155"},
-                new String[]{"Combo Break Hub", "Hinjewadi Phase 2, Pune", "10:00", "22:00", "130"},
-                new String[]{"Next Gen Den", "Hinjewadi Phase 3, Pune", "10:00", "23:00", "150"},
-                new String[]{"Respawn District", "Magarpatta, Pune", "11:00", "23:00", "142"},
-                new String[]{"XP Lounge", "Camp, Pune", "10:00", "22:00", "122"},
-                new String[]{"Boss Fight Base", "Sinhagad Road, Pune", "10:00", "21:00", "108"},
-                new String[]{"Console Collective", "Karve Nagar, Pune", "09:00", "22:00", "112"},
-                new String[]{"PlayGrid Studio", "Pashan, Pune", "10:00", "22:00", "126"},
-                new String[]{"Meta Room", "Kharadi, Pune", "10:00", "23:00", "148"},
-                new String[]{"Power Circle Cafe", "Mundhwa, Pune", "10:00", "22:00", "132"},
-                new String[]{"Champion's Corner", "Deccan, Pune", "09:00", "23:00", "138"}
+                new String[]{"Arena PS Lounge", "Andheri West, Mumbai", "10:00", "22:00", "120"},
+                new String[]{"Midnight Console Hub", "Bandra West, Mumbai", "11:00", "23:00", "150"},
+                new String[]{"Elite Gamer Spot", "Lower Parel, Mumbai", "10:00", "23:00", "140"},
+                new String[]{"Respawn Republic", "Powai, Mumbai", "09:00", "22:00", "110"},
+                new String[]{"Victory Vault", "Ghatkopar East, Mumbai", "10:00", "22:00", "125"},
+                new String[]{"Trigger Zone", "Chembur, Mumbai", "11:00", "23:00", "135"},
+                new String[]{"Joystick Junction", "Dadar West, Mumbai", "10:00", "21:00", "100"},
+                new String[]{"Pixel Playhouse", "Vashi, Navi Mumbai", "09:00", "22:00", "115"},
+                new String[]{"PowerUp Lounge", "Nerul, Navi Mumbai", "10:00", "22:00", "118"},
+                new String[]{"Checkpoint Cafe", "Seawoods, Navi Mumbai", "10:00", "23:00", "145"},
+                new String[]{"Lag Free Arena", "Kharghar, Navi Mumbai", "09:00", "23:00", "155"},
+                new String[]{"Combo Break Hub", "Belapur, Navi Mumbai", "10:00", "22:00", "130"},
+                new String[]{"Next Gen Den", "Airoli, Navi Mumbai", "10:00", "23:00", "150"},
+                new String[]{"Respawn District", "Ghansoli, Navi Mumbai", "11:00", "23:00", "142"},
+                new String[]{"XP Lounge", "Thane West, Thane", "10:00", "22:00", "122"},
+                new String[]{"Boss Fight Base", "Naupada, Thane", "10:00", "21:00", "108"},
+                new String[]{"Console Collective", "Majiwada, Thane", "09:00", "22:00", "112"},
+                new String[]{"PlayGrid Studio", "Kasarvadavali, Thane", "10:00", "22:00", "126"},
+                new String[]{"Meta Room", "Wagle Estate, Thane", "10:00", "23:00", "148"},
+                new String[]{"Power Circle Cafe", "Mira Road East, Mumbai", "10:00", "22:00", "132"},
+                new String[]{"Champion's Corner", "Borivali West, Mumbai", "09:00", "23:00", "138"}
         );
 
         List<Cafe> cafes = new ArrayList<>();
@@ -191,6 +190,15 @@ public class DataSeeder {
             Cafe cafe = repository.findAllByOwner(owner).stream()
                     .filter(existing -> spec[0].equals(existing.getName()))
                     .findFirst()
+                    .map(existing -> {
+                        existing.setAddress(spec[1]);
+                        existing.setOpenTime(LocalTime.parse(spec[2]));
+                        existing.setCloseTime(LocalTime.parse(spec[3]));
+                        existing.setHourlyRate(Double.parseDouble(spec[4]));
+                        existing.setCafeImage(imagePath);
+                        existing.setAmenities(List.of("4K Screens", "Air Conditioning", "Snacks", "Racing Setup"));
+                        return repository.save(existing);
+                    })
                     .orElseGet(() -> {
                         Cafe newCafe = new Cafe();
                         newCafe.setOwner(owner);
