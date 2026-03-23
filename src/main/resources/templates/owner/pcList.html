@@ -9,38 +9,25 @@
         tailwind.config = {
             theme: {
                 extend: {
-                    colors: {'neon-cyan':'#00ffff','neon-purple':'#8b5cf6','neon-green':'#10b981','dark-bg':'#0a0a0a','dark-secondary':'#1a1a1a'},
+                    colors: {'neon-cyan':'#00ffff','neon-purple':'#8b5cf6','neon-green':'#10b981','dark-bg':'#0a0a0a','dark-secondary':'#1a1a1a','dark-tertiary':'#2a2a2a'},
                 }
             }
         }
     </script>
     <link rel="stylesheet" th:href="@{'/css/style.css'}">
 </head>
-<body class="bg-dark-bg text-white flex pt-24">
+<body class="bg-dark-bg text-white pt-24">
 <div th:replace="~{fragments/owner-navbar :: ownerNavbar('cafes')}"></div>
-<aside class="w-64 bg-dark-secondary h-screen sticky top-0 border-r border-neon-cyan/20 flex flex-col">
-    <div class="p-6 border-b border-neon-cyan/20"><h1 class="font-orbitron font-bold text-xl text-neon-cyan text-center">OWNER PANEL</h1></div>
-    <nav class="p-4 space-y-2 flex-grow">
-        <a th:href="@{/owner/}" class="block py-3 px-4 rounded-lg hover:bg-neon-cyan/10 sidebar-link font-semibold">📈 Dashboard</a>
-        <a th:href="@{/owner/cafes}" class="block py-3 px-4 rounded-lg sidebar-link active font-semibold">☕ Manage Cafes</a>
-    </nav>
-    <div class="p-4 border-t border-neon-cyan/20">
-        <form th:action="@{/logout}" method="post">
-            <button type="submit" class="w-full text-center py-3 px-4 rounded-lg bg-red-500/20 hover:bg-red-500/40 text-red-300 font-semibold">Logout</button>
-        </form>
-    </div>
-</aside>
-<main class="flex-1 p-8">
-    <div class="mb-6 flex flex-wrap gap-3 rounded-xl border border-neon-cyan/20 bg-dark-secondary p-4">
-        <a th:href="@{/owner/}" class="rounded-lg bg-dark-bg px-4 py-2 font-semibold text-gray-200 hover:text-neon-cyan">Dashboard</a>
-        <a th:href="@{/owner/cafes}" class="rounded-lg bg-dark-bg px-4 py-2 font-semibold text-gray-200 hover:text-neon-cyan">Manage Cafes</a>
-        <a th:href="@{/owner/pricing/{cafeId}(cafeId=${cafeId})}" class="rounded-lg bg-dark-bg px-4 py-2 font-semibold text-gray-200 hover:text-neon-cyan">Pricing</a>
-        <a th:href="@{/owner/PCs/{cafeId}(cafeId=${cafeId})}" class="rounded-lg bg-neon-cyan/10 px-4 py-2 font-semibold text-neon-cyan">Manage PCs</a>
-    </div>
-    <div class="flex justify-between items-center mb-8">
+
+<main class="p-8">
+    <div class="mb-8 flex items-center justify-between">
         <h1 class="font-orbitron text-4xl font-bold text-neon-purple">Manage PCs</h1>
-        <a th:href="@{/owner/addSeat/{cafeId}(cafeId=${cafeId})}" class="btn-gaming px-6 py-3 rounded-lg font-semibold text-dark-bg">Add New PC</a>
+        <div class="flex gap-3">
+            <a th:href="@{/owner/cafes}" class="rounded-lg border border-neon-cyan/20 bg-dark-secondary px-5 py-3 font-semibold text-gray-200 hover:text-neon-cyan">Back to Cafes</a>
+            <a th:href="@{/owner/addSeat/{cafeId}(cafeId=${cafeId})}" class="btn-gaming px-6 py-3 rounded-lg font-semibold text-dark-bg">Add New PC</a>
+        </div>
     </div>
+
     <div class="bg-dark-secondary border border-neon-cyan/20 rounded-xl overflow-hidden">
         <table class="w-full text-left">
             <thead class="bg-dark-tertiary/50">
@@ -56,16 +43,16 @@
                 <td class="p-4" th:text="${pc.seatNumber}"></td>
                 <td class="p-4" th:text="${pc.configuration}"></td>
                 <td class="p-4">
-                        <span class="px-3 py-1 rounded-full text-sm font-semibold"
-                              th:text="${pc.available}"
-                              th:classappend="${pc.available == 'Available' ? 'bg-neon-green/20 text-neon-green' : (pc.available == 'Busy' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-red-500/20 text-red-400')}">
-                        </span>
+                    <span class="px-3 py-1 rounded-full text-sm font-semibold"
+                          th:text="${pc.available}"
+                          th:classappend="${pc.available == 'Available' ? 'bg-neon-green/20 text-neon-green' : (pc.available == 'Busy' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-red-500/20 text-red-400')}">
+                    </span>
                 </td>
                 <td class="p-4">
-                    <a th:href="@{/owner/slots/{pcId}(pcId=${pc.id})}" class="text-neon-cyan hover:underline">View Slots</a>
-                </td>
-                <td class="p-4">
-                    <a th:href="@{/owner/addSlots/{pcId}(pcId=${pc.id})}" class="ml-4 text-green-500 hover:underline">Add Slots</a>
+                    <div class="flex flex-wrap gap-4">
+                        <a th:href="@{/owner/slots/{pcId}(pcId=${pc.id})}" class="text-neon-cyan hover:underline font-semibold">View Slots</a>
+                        <a th:href="@{/owner/addSlots/{pcId}(pcId=${pc.id})}" class="text-neon-green hover:underline font-semibold">Add Slots</a>
+                    </div>
                 </td>
             </tr>
             </tbody>

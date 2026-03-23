@@ -14,6 +14,7 @@
             }
         }
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" th:href="@{'/css/style.css'}">
 </head>
 <body class="bg-dark-bg text-white pt-24">
@@ -21,6 +22,81 @@
 
 <main class="p-8">
     <h1 class="font-orbitron text-4xl font-bold text-neon-purple mb-8">Dashboard</h1>
+    <section th:if="${!#lists.isEmpty(cafes)}" class="mb-10 rounded-xl border border-neon-cyan/20 bg-dark-secondary p-6" id="ownerInsightsWidget">
+        <div class="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+                <h2 class="font-orbitron text-2xl font-bold text-neon-cyan">ML Business Insights</h2>
+                <p class="text-gray-400">Peak hours, low-demand windows, occupancy, revenue forecast, and pricing advice.</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <label for="insightCafeSelect" class="text-sm font-semibold text-gray-300">Cafe</label>
+                <select id="insightCafeSelect" class="rounded-lg border border-neon-cyan/30 bg-dark-bg px-4 py-2 text-white">
+                    <option th:each="cafe : ${cafes}" th:value="${cafe.id}" th:text="${cafe.name}">Cafe</option>
+                </select>
+                <select id="insightSourceSelect" class="rounded-lg border border-neon-cyan/30 bg-dark-bg px-4 py-2 text-white">
+                    <option value="both">Both</option>
+                    <option value="online">Online</option>
+                    <option value="offline">Offline</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="mb-5 rounded-xl border border-neon-purple/15 bg-dark-bg px-4 py-3 text-sm text-gray-300">
+            <span class="font-semibold text-neon-cyan">Revenue Mode Guide:</span>
+            <span class="ml-1"><span class="text-white font-medium">Both</span> shows total forecast revenue,</span>
+            <span class="ml-1"><span class="text-white font-medium">Online</span> shows the online-attributed share,</span>
+            <span class="ml-1">and <span class="text-white font-medium">Offline</span> shows the walk-in share of that same total forecast.</span>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
+            <div class="rounded-xl border border-neon-cyan/20 bg-dark-bg p-5">
+                <p class="text-sm uppercase tracking-widest text-gray-400">Peak Hour</p>
+                <h3 id="insightPeakHour" class="mt-3 font-orbitron text-3xl text-neon-cyan">--</h3>
+            </div>
+            <div class="rounded-xl border border-neon-purple/20 bg-dark-bg p-5">
+                <p class="text-sm uppercase tracking-widest text-gray-400">Low Hour</p>
+                <h3 id="insightLowHour" class="mt-3 font-orbitron text-3xl text-neon-purple">--</h3>
+            </div>
+            <div class="rounded-xl border border-neon-green/20 bg-dark-bg p-5">
+                <p class="text-sm uppercase tracking-widest text-gray-400">Best Earning Slot</p>
+                <h3 id="insightBestSlot" class="mt-3 font-orbitron text-3xl text-neon-green">--</h3>
+            </div>
+            <div class="rounded-xl border border-yellow-400/20 bg-dark-bg p-5">
+                <p id="insightRevenueLabel" class="text-sm uppercase tracking-widest text-gray-400">Expected Revenue</p>
+                <h3 id="insightRevenue" class="mt-3 font-orbitron text-3xl text-yellow-300">--</h3>
+            </div>
+            <div class="rounded-xl border border-blue-400/20 bg-dark-bg p-5">
+                <p class="text-sm uppercase tracking-widest text-gray-400">Occupancy</p>
+                <h3 id="insightOccupancy" class="mt-3 font-orbitron text-3xl text-blue-300">--</h3>
+            </div>
+        </div>
+
+        <div class="mt-5 rounded-xl border border-neon-cyan/10 bg-dark-bg p-5">
+            <p class="text-sm uppercase tracking-widest text-gray-400">Smart Pricing Suggestion</p>
+            <p id="insightSuggestion" class="mt-3 text-lg text-gray-200">Loading insights...</p>
+        </div>
+
+        <div class="mt-5 rounded-xl border border-neon-cyan/10 bg-dark-bg p-5">
+            <div class="mb-4 flex items-center justify-between">
+                <div>
+                    <p class="text-sm uppercase tracking-widest text-gray-400">Hourly Demand Graph</p>
+                    <p class="text-sm text-gray-500">Smoothed hourly forecast for the selected source.</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <label for="graphSourceSelect" class="text-sm font-semibold text-gray-300">Graph Source</label>
+                    <select id="graphSourceSelect" class="rounded-lg border border-neon-cyan/30 bg-dark-bg px-4 py-2 text-white">
+                        <option value="both">Both</option>
+                        <option value="online">Online</option>
+                        <option value="offline">Offline</option>
+                    </select>
+                </div>
+            </div>
+            <div class="h-80">
+                <canvas id="ownerHourlyInsightsChart"></canvas>
+            </div>
+        </div>
+    </section>
+
     <div class="mb-8">
         <h2 class="font-orbitron text-2xl font-bold text-neon-cyan mb-4">Your Cafes</h2>
         <div th:if="${#lists.isEmpty(cafes)}" class="bg-dark-secondary p-6 rounded-xl border border-neon-purple/20 text-center">
@@ -39,5 +115,6 @@
 </main>
 
 <script th:src="@{'/js/script.js'}" defer></script>
+<script th:src="@{'/js/owner-insights.js'}" defer></script>
 </body>
 </html>

@@ -45,6 +45,11 @@
             <input type="number" id="hourlyRate" step="0.01" th:field="*{hourlyRate}" class="w-full mt-2 px-4 py-2 bg-dark-bg border border-neon-cyan/30 rounded-lg" required>
         </div>
         <div>
+            <label for="amenitiesInput" class="block text-gray-300">Amenities</label>
+            <textarea id="amenitiesInput" th:field="*{amenitiesInput}" rows="3" class="w-full mt-2 px-4 py-2 bg-dark-bg border border-neon-cyan/30 rounded-lg" placeholder="High-Speed Internet, Snacks & Drinks, Air Conditioning"></textarea>
+            <p class="mt-2 text-sm text-gray-400">Enter amenities separated by commas.</p>
+        </div>
+        <div>
             <label for="cafeImg" class="block text-gray-300">Add Cafe Image</label>
             <input type="file" id="cafeImg" th:field="*{cafeImageFile}" class="w-full mt-2 px-4 py-2 bg-dark-bg border border-neon-cyan/30 rounded-lg" required>
         </div>

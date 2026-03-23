@@ -28,11 +28,29 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 @Configuration
 public class DataSeeder {
+
+    private static final List<String> IMAGE_POOL = List.of(
+            "/images/cafe1.jpeg",
+            "/images/cafe2.jpg",
+            "/images/cafe3.jpg",
+            "/images/dashboard.jpg"
+    );
+
+    private static final List<String> GAME_POOL = List.of(
+            "EA Sports FC 25",
+            "Tekken 8",
+            "Spider-Man 2",
+            "God of War Ragnarok",
+            "Gran Turismo 7",
+            "Call of Duty",
+            "Mortal Kombat 1",
+            "WWE 2K24"
+    );
 
     @Bean
     CommandLineRunner seedDemoData(
@@ -49,176 +67,193 @@ public class DataSeeder {
             PasswordEncoder passwordEncoder
     ) {
         return args -> {
-            if (gameRepository.count() == 0) {
-                seedGames(gameRepository);
+            seedGames(gameRepository);
+
+            List<CafeOwner> owners = seedOwners(cafeOwnerRepository, passwordEncoder);
+            List<User> users = seedUsers(userRepository);
+            List<Cafe> cafes = seedCafes(cafeRepository, owners);
+
+            for (int index = 0; index < cafes.size(); index++) {
+                Cafe cafe = cafes.get(index);
+                seedPricingRule(pricingRuleRepository, cafe, index);
+                List<PC> pcs = seedPcs(pcRepository, slotRepository, cafe, index);
+                seedPreferences(userGamePreferenceRepository, users, cafe, index);
+                seedBookings(userBookingRepository, offlineBookingRepository, slotRepository, cafe, pcs, users, index);
             }
-
-            CafeOwner owner = cafeOwnerRepository.findByEmail("owner@example.com")
-                    .orElseGet(() -> {
-                        CafeOwner newOwner = new CafeOwner();
-                        newOwner.setName("Demo Owner");
-                        newOwner.setEmail("owner@example.com");
-                        newOwner.setPhone("9876543210");
-                        newOwner.setPassword(passwordEncoder.encode("owner123"));
-                        newOwner.setStripeAccountId("demo_stripe_account");
-                        newOwner.setRazorpayAccountId("demo_razorpay_account");
-                        return cafeOwnerRepository.save(newOwner);
-                    });
-
-            User userOne = findOrCreateUser(userRepository, "Aarav Patil", "aarav@example.com", "9999990001");
-            User userTwo = findOrCreateUser(userRepository, "Riya Shah", "riya@example.com", "9999990002");
-            User userThree = findOrCreateUser(userRepository, "Kabir Mehta", "kabir@example.com", "9999990003");
-            User userFour = findOrCreateUser(userRepository, "Sneha Kulkarni", "sneha@example.com", "9999990004");
-            User userFive = findOrCreateUser(userRepository, "Yash Deshmukh", "yash@example.com", "9999990005");
-            User userSix = findOrCreateUser(userRepository, "Isha Verma", "isha@example.com", "9999990006");
-            User userSeven = findOrCreateUser(userRepository, "Manav Joshi", "manav@example.com", "9999990007");
-            User userEight = findOrCreateUser(userRepository, "Pooja Nair", "pooja@example.com", "9999990008");
-
-            Cafe arena = findOrCreateCafe(cafeRepository, owner, "Arena PS Lounge", "FC Road, Pune", LocalTime.of(10, 0), LocalTime.of(22, 0), 120.0, "/images/cafe1.jpeg");
-            Cafe midnight = findOrCreateCafe(cafeRepository, owner, "Midnight Console Hub", "Baner, Pune", LocalTime.of(11, 0), LocalTime.of(23, 0), 150.0, "/images/cafe2.jpg");
-
-            seedPricingRule(pricingRuleRepository, arena, 120.0, 10, 25, 0.85, 1.40);
-            seedPricingRule(pricingRuleRepository, midnight, 150.0, 12, 28, 0.90, 1.55);
-
-            PC arenaSeatOne = findOrCreatePc(pcRepository, slotRepository, arena, 1, "PS5 + 55 inch 4K TV");
-            PC arenaSeatTwo = findOrCreatePc(pcRepository, slotRepository, arena, 2, "PS5 Slim + Racing Setup");
-            PC arenaSeatThree = findOrCreatePc(pcRepository, slotRepository, arena, 3, "PS5 Digital + FIFA Station");
-            PC arenaSeatFour = findOrCreatePc(pcRepository, slotRepository, arena, 4, "PS5 + DualSense Edge Setup");
-            PC midnightSeatOne = findOrCreatePc(pcRepository, slotRepository, midnight, 1, "PS4 Pro + FIFA Station");
-            PC midnightSeatTwo = findOrCreatePc(pcRepository, slotRepository, midnight, 2, "PS5 + VR Corner");
-            PC midnightSeatThree = findOrCreatePc(pcRepository, slotRepository, midnight, 3, "PS5 Slim + Story Mode Lounge");
-            PC midnightSeatFour = findOrCreatePc(pcRepository, slotRepository, midnight, 4, "PS5 + Pro Controller Arena");
-
-            seedPreferences(userGamePreferenceRepository, userOne, arena, List.of("EA Sports FC 25", "Tekken 8", "Spider-Man 2"));
-            seedPreferences(userGamePreferenceRepository, userTwo, arena, List.of("EA Sports FC 25", "God of War Ragnarok", "Tekken 8"));
-            seedPreferences(userGamePreferenceRepository, userOne, midnight, List.of("Gran Turismo 7", "Call of Duty"));
-            seedPreferences(userGamePreferenceRepository, userTwo, midnight, List.of("Gran Turismo 7", "EA Sports FC 25", "Call of Duty"));
-            seedPreferences(userGamePreferenceRepository, userThree, arena, List.of("EA Sports FC 25", "Call of Duty", "Tekken 8"));
-            seedPreferences(userGamePreferenceRepository, userFour, midnight, List.of("Gran Turismo 7", "Spider-Man 2", "God of War Ragnarok"));
-            seedPreferences(userGamePreferenceRepository, userFive, arena, List.of("Tekken 8", "Spider-Man 2", "EA Sports FC 25"));
-            seedPreferences(userGamePreferenceRepository, userSix, arena, List.of("God of War Ragnarok", "EA Sports FC 25", "Call of Duty"));
-            seedPreferences(userGamePreferenceRepository, userSeven, midnight, List.of("Tekken 8", "Gran Turismo 7", "Call of Duty"));
-            seedPreferences(userGamePreferenceRepository, userEight, midnight, List.of("Spider-Man 2", "EA Sports FC 25", "Gran Turismo 7"));
-
-            seedBookings(userBookingRepository, slotRepository, arenaSeatOne, userOne, LocalDate.now().minusDays(1), List.of(10, 12, 18));
-            seedBookings(userBookingRepository, slotRepository, arenaSeatOne, userTwo, LocalDate.now(), List.of(14, 16));
-            seedBookings(userBookingRepository, slotRepository, arenaSeatTwo, userOne, LocalDate.now().minusDays(2), List.of(11, 15));
-            seedBookings(userBookingRepository, slotRepository, arenaSeatThree, userSix, LocalDate.now().minusDays(3), List.of(14, 19));
-            seedBookings(userBookingRepository, slotRepository, arenaSeatFour, userSeven, LocalDate.now().minusDays(4), List.of(18, 20));
-            seedBookings(userBookingRepository, slotRepository, midnightSeatOne, userTwo, LocalDate.now().minusDays(7), List.of(12, 17, 20));
-            seedBookings(userBookingRepository, slotRepository, midnightSeatTwo, userOne, LocalDate.now().minusDays(14), List.of(13, 19, 21));
-            seedBookings(userBookingRepository, slotRepository, midnightSeatThree, userEight, LocalDate.now().minusDays(5), List.of(15, 18));
-            seedBookings(userBookingRepository, slotRepository, midnightSeatFour, userThree, LocalDate.now().minusDays(6), List.of(16, 22));
-
-            seedOfflineBooking(offlineBookingRepository, arena, LocalDate.now(), 14, 3, "Walk-ins after school");
-            seedOfflineBooking(offlineBookingRepository, arena, LocalDate.now().plusDays(1), 18, 2, "Tournament practice");
-            seedOfflineBooking(offlineBookingRepository, midnight, LocalDate.now(), 20, 4, "Weekend crowd");
-
-            for (int month = 1; month <= 6; month++) {
-                PC targetPc = month % 2 == 0 ? arenaSeatOne : midnightSeatTwo;
-                User targetUser = month % 2 == 0 ? userOne : userTwo;
-                seedBookings(
-                        userBookingRepository,
-                        slotRepository,
-                        targetPc,
-                        targetUser,
-                        LocalDate.of(LocalDate.now().getYear(), month, Math.min(10 + month, 28)),
-                        List.of(12 + (month % 4), 17 + (month % 3))
-                );
-            }
-
-            seedOptimizerScenarioData(
-                    userBookingRepository,
-                    offlineBookingRepository,
-                    slotRepository,
-                    arena,
-                    List.of(arenaSeatOne, arenaSeatTwo, arenaSeatThree, arenaSeatFour),
-                    List.of(userOne, userTwo, userThree, userFour, userFive, userSix, userSeven, userEight)
-            );
-            seedOptimizerScenarioData(
-                    userBookingRepository,
-                    offlineBookingRepository,
-                    slotRepository,
-                    midnight,
-                    List.of(midnightSeatOne, midnightSeatTwo, midnightSeatThree, midnightSeatFour),
-                    List.of(userOne, userTwo, userThree, userFour, userFive, userSix, userSeven, userEight)
-            );
         };
     }
 
     private void seedGames(GameRepository gameRepository) {
-        List<String> gameNames = List.of(
-                "EA Sports FC 25",
-                "Tekken 8",
-                "Spider-Man 2",
-                "God of War Ragnarok",
-                "Gran Turismo 7",
-                "Call of Duty"
+        for (String gameName : GAME_POOL) {
+            boolean exists = gameRepository.findAll().stream().anyMatch(game -> gameName.equals(game.getName()));
+            if (!exists) {
+                Game game = new Game();
+                game.setName(gameName);
+                gameRepository.save(game);
+            }
+        }
+    }
+
+    private List<CafeOwner> seedOwners(CafeOwnerRepository repository, PasswordEncoder passwordEncoder) {
+        List<CafeOwner> owners = new ArrayList<>();
+
+        for (int index = 1; index <= 18; index++) {
+            String padded = String.format("%02d", index);
+            String email = "admin" + padded + "@pslounge.demo";
+            String phone = "900000" + String.format("%04d", index);
+
+            CafeOwner owner = repository.findByEmail(email).orElseGet(() -> {
+                CafeOwner newOwner = new CafeOwner();
+                newOwner.setName("Demo Admin " + padded);
+                newOwner.setEmail(email);
+                newOwner.setPhone(phone);
+                newOwner.setPassword(passwordEncoder.encode("Admin@123"));
+                newOwner.setStripeAccountId("demo_stripe_" + padded);
+                newOwner.setRazorpayAccountId("demo_razorpay_" + padded);
+                return repository.save(newOwner);
+            });
+
+            owners.add(owner);
+        }
+
+        return owners;
+    }
+
+    private List<User> seedUsers(UserRepository repository) {
+        List<String[]> users = List.of(
+                new String[]{"Aarav Patil", "aarav@example.com", "9999990001"},
+                new String[]{"Riya Shah", "riya@example.com", "9999990002"},
+                new String[]{"Kabir Mehta", "kabir@example.com", "9999990003"},
+                new String[]{"Sneha Kulkarni", "sneha@example.com", "9999990004"},
+                new String[]{"Yash Deshmukh", "yash@example.com", "9999990005"},
+                new String[]{"Isha Verma", "isha@example.com", "9999990006"},
+                new String[]{"Manav Joshi", "manav@example.com", "9999990007"},
+                new String[]{"Pooja Nair", "pooja@example.com", "9999990008"},
+                new String[]{"Arjun Rao", "arjun@example.com", "9999990009"},
+                new String[]{"Neha Kapoor", "neha@example.com", "9999990010"},
+                new String[]{"Dev Malhotra", "dev@example.com", "9999990011"},
+                new String[]{"Siya Trivedi", "siya@example.com", "9999990012"},
+                new String[]{"Omkar Jadhav", "omkar@example.com", "9999990013"},
+                new String[]{"Tanya Arora", "tanya@example.com", "9999990014"},
+                new String[]{"Harsh Soni", "harsh@example.com", "9999990015"},
+                new String[]{"Zoya Khan", "zoya@example.com", "9999990016"},
+                new String[]{"Rohan Iyer", "rohan@example.com", "9999990017"},
+                new String[]{"Mira Patel", "mira@example.com", "9999990018"},
+                new String[]{"Nikhil Sen", "nikhil@example.com", "9999990019"},
+                new String[]{"Aditi Bose", "aditi@example.com", "9999990020"}
         );
 
-        for (String gameName : gameNames) {
-            Game game = new Game();
-            game.setName(gameName);
-            gameRepository.save(game);
+        List<User> result = new ArrayList<>();
+        for (String[] entry : users) {
+            User user = repository.findByEmail(entry[1]).orElseGet(() -> {
+                User newUser = new User();
+                newUser.setName(entry[0]);
+                newUser.setEmail(entry[1]);
+                newUser.setPhone(entry[2]);
+                newUser.setRoles("ROLE_USER");
+                return repository.save(newUser);
+            });
+            result.add(user);
         }
+        return result;
     }
 
-    private User findOrCreateUser(UserRepository userRepository, String name, String email, String phone) {
-        Optional<User> existingUser = userRepository.findByEmail(email);
-        if (existingUser.isPresent()) {
-            return existingUser.get();
-        }
+    private List<Cafe> seedCafes(CafeRepository repository, List<CafeOwner> owners) {
+        List<String[]> cafeSpecs = List.of(
+                new String[]{"Arena PS Lounge", "FC Road, Pune", "10:00", "22:00", "120"},
+                new String[]{"Midnight Console Hub", "Baner, Pune", "11:00", "23:00", "150"},
+                new String[]{"Elite Gamer Spot", "Koregaon Park, Pune", "10:00", "23:00", "140"},
+                new String[]{"Respawn Republic", "Viman Nagar, Pune", "09:00", "22:00", "110"},
+                new String[]{"Victory Vault", "Aundh, Pune", "10:00", "22:00", "125"},
+                new String[]{"Trigger Zone", "Hadapsar, Pune", "11:00", "23:00", "135"},
+                new String[]{"Joystick Junction", "Kothrud, Pune", "10:00", "21:00", "100"},
+                new String[]{"Pixel Playhouse", "Wakad, Pune", "09:00", "22:00", "115"},
+                new String[]{"PowerUp Lounge", "Pimpri, Pune", "10:00", "22:00", "118"},
+                new String[]{"Checkpoint Cafe", "Nigdi, Pune", "10:00", "23:00", "145"},
+                new String[]{"Lag Free Arena", "Hinjewadi Phase 1, Pune", "09:00", "23:00", "155"},
+                new String[]{"Combo Break Hub", "Hinjewadi Phase 2, Pune", "10:00", "22:00", "130"},
+                new String[]{"Next Gen Den", "Hinjewadi Phase 3, Pune", "10:00", "23:00", "150"},
+                new String[]{"Respawn District", "Magarpatta, Pune", "11:00", "23:00", "142"},
+                new String[]{"XP Lounge", "Camp, Pune", "10:00", "22:00", "122"},
+                new String[]{"Boss Fight Base", "Sinhagad Road, Pune", "10:00", "21:00", "108"},
+                new String[]{"Console Collective", "Karve Nagar, Pune", "09:00", "22:00", "112"},
+                new String[]{"PlayGrid Studio", "Pashan, Pune", "10:00", "22:00", "126"},
+                new String[]{"Meta Room", "Kharadi, Pune", "10:00", "23:00", "148"},
+                new String[]{"Power Circle Cafe", "Mundhwa, Pune", "10:00", "22:00", "132"},
+                new String[]{"Champion's Corner", "Deccan, Pune", "09:00", "23:00", "138"}
+        );
 
-        User user = new User();
-        user.setName(name);
-        user.setEmail(email);
-        user.setPhone(phone);
-        user.setRoles("ROLE_USER");
-        return userRepository.save(user);
+        List<Cafe> cafes = new ArrayList<>();
+        for (int index = 0; index < cafeSpecs.size(); index++) {
+            String[] spec = cafeSpecs.get(index);
+            CafeOwner owner = owners.get(index % owners.size());
+            String imagePath = IMAGE_POOL.get(index % IMAGE_POOL.size());
+            Cafe cafe = repository.findAllByOwner(owner).stream()
+                    .filter(existing -> spec[0].equals(existing.getName()))
+                    .findFirst()
+                    .orElseGet(() -> {
+                        Cafe newCafe = new Cafe();
+                        newCafe.setOwner(owner);
+                        newCafe.setName(spec[0]);
+                        newCafe.setAddress(spec[1]);
+                        newCafe.setOpenTime(LocalTime.parse(spec[2]));
+                        newCafe.setCloseTime(LocalTime.parse(spec[3]));
+                        newCafe.setHourlyRate(Double.parseDouble(spec[4]));
+                        newCafe.setCafeImage(imagePath);
+                        newCafe.setAmenities(List.of("4K Screens", "Air Conditioning", "Snacks", "Racing Setup"));
+                        return repository.save(newCafe);
+                    });
+            cafes.add(cafe);
+        }
+        return cafes;
     }
 
-    private Cafe findOrCreateCafe(CafeRepository cafeRepository, CafeOwner owner, String name, String address, LocalTime openTime, LocalTime closeTime, Double hourlyRate, String imagePath) {
-        List<Cafe> ownerCafes = cafeRepository.findAllByOwner(owner);
-        for (Cafe existingCafe : ownerCafes) {
-            if (name.equals(existingCafe.getName())) {
-                return existingCafe;
-            }
-        }
-
-        Cafe cafe = new Cafe();
-        cafe.setOwner(owner);
-        cafe.setName(name);
-        cafe.setAddress(address);
-        cafe.setOpenTime(openTime);
-        cafe.setCloseTime(closeTime);
-        cafe.setHourlyRate(hourlyRate);
-        cafe.setCafeImage(imagePath);
-        return cafeRepository.save(cafe);
+    private void seedPricingRule(PricingRuleRepository repository, Cafe cafe, int index) {
+        repository.findByCafeId(cafe.getId()).orElseGet(() -> {
+            PricingRule rule = new PricingRule();
+            rule.setCafe(cafe);
+            rule.setBasePrice(cafe.getHourlyRate());
+            rule.setLowDemandThreshold(8 + (index % 4));
+            rule.setHighDemandThreshold(18 + (index % 6));
+            rule.setLowMultiplier(0.80 + ((index % 3) * 0.05));
+            rule.setHighMultiplier(1.35 + ((index % 4) * 0.08));
+            return repository.save(rule);
+        });
     }
 
-    private PC findOrCreatePc(PCRepository pcRepository, SlotRepository slotRepository, Cafe cafe, int seatNumber, String configuration) {
+    private List<PC> seedPcs(PCRepository pcRepository, SlotRepository slotRepository, Cafe cafe, int cafeIndex) {
         List<PC> existingPcs = pcRepository.findByCafeId(cafe.getId());
-        for (PC existingPc : existingPcs) {
-            if (existingPc.getSeatNumber() == seatNumber) {
-                if (slotRepository.findByPcId(existingPc.getId()).isEmpty()) {
-                    seedSlots(slotRepository, cafe, existingPc);
-                }
-                return existingPc;
-            }
+        if (!existingPcs.isEmpty()) {
+            existingPcs.forEach(pc -> ensureSlots(slotRepository, cafe, pc));
+            return existingPcs;
         }
 
-        PC pc = new PC();
-        pc.setCafe(cafe);
-        pc.setSeatNumber(seatNumber);
-        pc.setConfiguration(configuration);
-        pc.setAvailable("Available");
-        pc = pcRepository.save(pc);
+        List<String> configs = Arrays.asList(
+                "PS5 + 55 inch 4K TV",
+                "PS5 Slim + Racing Setup",
+                "PS5 Digital + FIFA Station",
+                "PS5 + DualSense Edge Setup"
+        );
 
-        seedSlots(slotRepository, cafe, pc);
-        return pcRepository.findById(pc.getId()).orElse(pc);
+        List<PC> pcs = new ArrayList<>();
+        for (int seat = 1; seat <= 4; seat++) {
+            PC pc = new PC();
+            pc.setCafe(cafe);
+            pc.setSeatNumber(seat);
+            pc.setConfiguration(configs.get((cafeIndex + seat - 1) % configs.size()));
+            pc.setAvailable("Available");
+            pc = pcRepository.save(pc);
+            ensureSlots(slotRepository, cafe, pc);
+            pcs.add(pc);
+        }
+        return pcs;
     }
 
-    private void seedSlots(SlotRepository slotRepository, Cafe cafe, PC pc) {
+    private void ensureSlots(SlotRepository slotRepository, Cafe cafe, PC pc) {
+        if (!slotRepository.findByPcId(pc.getId()).isEmpty()) {
+            return;
+        }
+
         LocalTime current = cafe.getOpenTime();
         while (current.isBefore(cafe.getCloseTime())) {
             Slot slot = new Slot();
@@ -231,75 +266,120 @@ public class DataSeeder {
         }
     }
 
-    private void seedPreferences(UserGamePreferenceRepository repository, User user, Cafe cafe, List<String> games) {
-        List<UserGamePreference> existingPreferences = repository.findAll().stream()
-                .filter(preference -> preference.getUser() != null && preference.getCafe() != null)
-                .filter(preference -> preference.getUser().getId().equals(user.getId()) && preference.getCafe().getId().equals(cafe.getId()))
-                .toList();
+    private void seedPreferences(UserGamePreferenceRepository repository, List<User> users, Cafe cafe, int cafeIndex) {
+        for (int i = 0; i < Math.min(8, users.size()); i++) {
+            User user = users.get((cafeIndex + i) % users.size());
+            List<String> picks = List.of(
+                    GAME_POOL.get((cafeIndex + i) % GAME_POOL.size()),
+                    GAME_POOL.get((cafeIndex + i + 1) % GAME_POOL.size()),
+                    GAME_POOL.get((cafeIndex + i + 2) % GAME_POOL.size())
+            );
 
-        List<String> existingNames = existingPreferences.stream()
-                .map(UserGamePreference::getGameName)
-                .toList();
+            List<String> existingNames = repository.findAll().stream()
+                    .filter(preference -> preference.getUser() != null && preference.getCafe() != null)
+                    .filter(preference -> preference.getUser().getId().equals(user.getId()) && preference.getCafe().getId().equals(cafe.getId()))
+                    .map(UserGamePreference::getGameName)
+                    .toList();
 
-        for (String gameName : games) {
-            if (existingNames.contains(gameName)) {
-                continue;
+            for (String gameName : picks) {
+                if (existingNames.contains(gameName)) {
+                    continue;
+                }
+                UserGamePreference preference = new UserGamePreference();
+                preference.setUser(user);
+                preference.setCafe(cafe);
+                preference.setGameName(gameName);
+                repository.save(preference);
             }
-            UserGamePreference preference = new UserGamePreference();
-            preference.setUser(user);
-            preference.setCafe(cafe);
-            preference.setGameName(gameName);
-            repository.save(preference);
         }
     }
 
-    private void seedBookings(UserBookingRepository repository, SlotRepository slotRepository, PC pc, User user, LocalDate date, List<Integer> hours) {
-        List<Slot> slotsForPc = slotRepository.findByPcId(pc.getId());
-        for (Integer hour : hours) {
-            Slot slot = slotsForPc.stream()
-                    .filter(existingSlot -> existingSlot.getStartTime().getHour() == hour)
-                    .findFirst()
-                    .orElse(null);
+    private void seedBookings(UserBookingRepository bookingRepository,
+                              OfflineBookingRepository offlineBookingRepository,
+                              SlotRepository slotRepository,
+                              Cafe cafe,
+                              List<PC> pcs,
+                              List<User> users,
+                              int cafeIndex) {
+        List<Integer> activeHours = List.of(11, 13, 15, 17, 18, 19, 20, 21);
 
-            if (slot == null) {
-                continue;
+        for (int dayOffset = -10; dayOffset <= 12; dayOffset++) {
+            LocalDate date = LocalDate.now().plusDays(dayOffset);
+            boolean weekend = date.getDayOfWeek().getValue() >= 6;
+
+            for (int hour : activeHours) {
+                int onlineCount = getOnlineDemandPattern(hour, weekend, cafeIndex, dayOffset);
+                int offlineCount = getOfflineDemandPattern(hour, weekend, cafeIndex, dayOffset);
+
+                for (int i = 0; i < Math.min(onlineCount, pcs.size()); i++) {
+                    PC pc = pcs.get(i);
+                    User user = users.get((cafeIndex + dayOffset + i + users.size()) % users.size());
+                    seedBooking(bookingRepository, slotRepository, pc, user, date, hour);
+                }
+
+                if (offlineCount > 0) {
+                    seedOfflineBooking(offlineBookingRepository, cafe, date, hour, offlineCount, "Showcase walk-in demand at " + hour + ":00");
+                }
             }
-
-            if (repository.existsBySlotIdAndBookingDateAndStatus(slot.getId(), date, UserBooking.BookingStatus.BOOKED)) {
-                continue;
-            }
-
-            UserBooking booking = new UserBooking();
-            booking.setPc(pc);
-            booking.setSlot(slot);
-            booking.setUser(user);
-            booking.setBookingDate(date);
-            booking.setStartTime(slot.getStartTime());
-            booking.setEndTime(slot.getEndTime());
-            booking.setStatus(UserBooking.BookingStatus.BOOKED);
-            repository.save(booking);
         }
     }
 
-    private void seedPricingRule(PricingRuleRepository repository,
-                                 Cafe cafe,
-                                 double basePrice,
-                                 int lowThreshold,
-                                 int highThreshold,
-                                 double lowMultiplier,
-                                 double highMultiplier) {
-        if (repository.findByCafeId(cafe.getId()).isPresent()) {
+    private int getOnlineDemandPattern(int hour, boolean weekend, int cafeIndex, int dayOffset) {
+        int normalizedOffset = Math.abs(dayOffset) % 3;
+        if (hour >= 19) {
+            return weekend ? 4 : 3 + ((cafeIndex + normalizedOffset) % 2);
+        }
+        if (hour >= 17) {
+            return weekend ? 3 : 2 + ((cafeIndex + normalizedOffset) % 2);
+        }
+        if (hour >= 13) {
+            return 2 + ((cafeIndex + hour + normalizedOffset) % 2);
+        }
+        return 1 + ((cafeIndex + normalizedOffset) % 2);
+    }
+
+    private int getOfflineDemandPattern(int hour, boolean weekend, int cafeIndex, int dayOffset) {
+        int normalizedOffset = Math.abs(dayOffset) % 4;
+        if (hour >= 20) {
+            return weekend ? 12 + ((cafeIndex + normalizedOffset) % 5) : 7 + ((cafeIndex + normalizedOffset) % 4);
+        }
+        if (hour >= 18) {
+            return weekend ? 10 + ((cafeIndex + normalizedOffset) % 4) : 6 + ((cafeIndex + normalizedOffset) % 3);
+        }
+        if (hour >= 15) {
+            return 3 + ((cafeIndex + normalizedOffset) % 3);
+        }
+        return 1 + ((cafeIndex + normalizedOffset) % 2);
+    }
+
+    private void seedBooking(UserBookingRepository repository,
+                             SlotRepository slotRepository,
+                             PC pc,
+                             User user,
+                             LocalDate date,
+                             int hour) {
+        Slot slot = slotRepository.findByPcId(pc.getId()).stream()
+                .filter(existingSlot -> existingSlot.getStartTime().getHour() == hour)
+                .findFirst()
+                .orElse(null);
+
+        if (slot == null) {
             return;
         }
 
-        PricingRule rule = new PricingRule();
-        rule.setCafe(cafe);
-        rule.setBasePrice(basePrice);
-        rule.setLowDemandThreshold(lowThreshold);
-        rule.setHighDemandThreshold(highThreshold);
-        rule.setLowMultiplier(lowMultiplier);
-        rule.setHighMultiplier(highMultiplier);
-        repository.save(rule);
+        if (repository.existsBySlotIdAndBookingDateAndStatus(slot.getId(), date, UserBooking.BookingStatus.BOOKED)) {
+            return;
+        }
+
+        UserBooking booking = new UserBooking();
+        booking.setPc(pc);
+        booking.setSlot(slot);
+        booking.setUser(user);
+        booking.setBookingDate(date);
+        booking.setStartTime(slot.getStartTime());
+        booking.setEndTime(slot.getEndTime());
+        booking.setStatus(UserBooking.BookingStatus.BOOKED);
+        repository.save(booking);
     }
 
     private void seedOfflineBooking(OfflineBookingRepository repository,
@@ -320,67 +400,5 @@ public class DataSeeder {
         offlineBooking.setCustomerCount((int) (customerCount - existingCount));
         offlineBooking.setNotes(notes);
         repository.save(offlineBooking);
-    }
-
-    private void seedOptimizerScenarioData(UserBookingRepository bookingRepository,
-                                           OfflineBookingRepository offlineBookingRepository,
-                                           SlotRepository slotRepository,
-                                           Cafe cafe,
-                                           List<PC> pcs,
-                                           List<User> users) {
-        for (int dayOffset = 0; dayOffset < 14; dayOffset++) {
-            LocalDate date = LocalDate.now().plusDays(dayOffset);
-            boolean weekend = date.getDayOfWeek().getValue() >= 5;
-
-            seedDemandWindow(bookingRepository, offlineBookingRepository, slotRepository, cafe, pcs, users, date, 11, 0, 0 + (dayOffset % 2));
-            seedDemandWindow(bookingRepository, offlineBookingRepository, slotRepository, cafe, pcs, users, date, 13, 1, 1);
-            seedDemandWindow(bookingRepository, offlineBookingRepository, slotRepository, cafe, pcs, users, date, 14, 2, 2 + (dayOffset % 2));
-            seedDemandWindow(bookingRepository, offlineBookingRepository, slotRepository, cafe, pcs, users, date, 16, 3, 2 + (dayOffset % 3));
-            seedDemandWindow(
-                    bookingRepository, offlineBookingRepository, slotRepository, cafe, pcs, users, date,
-                    18,
-                    4,
-                    weekend ? 18 + (dayOffset % 5) : 24 + (dayOffset % 6)
-            );
-            seedDemandWindow(
-                    bookingRepository, offlineBookingRepository, slotRepository, cafe, pcs, users, date,
-                    20,
-                    weekend ? 4 : 3,
-                    weekend ? 14 + (dayOffset % 4) : 18 + (dayOffset % 4)
-            );
-            if (weekend) {
-                seedDemandWindow(bookingRepository, offlineBookingRepository, slotRepository, cafe, pcs, users, date, 19, 4, 22 + (dayOffset % 5));
-                seedDemandWindow(bookingRepository, offlineBookingRepository, slotRepository, cafe, pcs, users, date, 21, 4, 20 + (dayOffset % 4));
-            } else {
-                seedDemandWindow(bookingRepository, offlineBookingRepository, slotRepository, cafe, pcs, users, date, 17, 4, 20 + (dayOffset % 4));
-                seedDemandWindow(bookingRepository, offlineBookingRepository, slotRepository, cafe, pcs, users, date, 19, 4, 26 + (dayOffset % 5));
-            }
-        }
-    }
-
-    private void seedDemandWindow(UserBookingRepository bookingRepository,
-                                  OfflineBookingRepository offlineBookingRepository,
-                                  SlotRepository slotRepository,
-                                  Cafe cafe,
-                                  List<PC> pcs,
-                                  List<User> users,
-                                  LocalDate date,
-                                  int hour,
-                                  int onlineCount,
-                                  int offlineCount) {
-        for (int i = 0; i < onlineCount && i < pcs.size() && i < users.size(); i++) {
-            seedBookings(bookingRepository, slotRepository, pcs.get(i), users.get(i), date, List.of(hour));
-        }
-
-        if (offlineCount > 0) {
-            seedOfflineBooking(
-                    offlineBookingRepository,
-                    cafe,
-                    date,
-                    hour,
-                    offlineCount,
-                    "Optimizer scenario seed for " + hour + ":00"
-            );
-        }
     }
 }

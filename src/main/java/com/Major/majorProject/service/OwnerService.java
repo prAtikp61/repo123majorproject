@@ -25,9 +25,10 @@ public class OwnerService {
     private final UserBookingRepository userBookingRepository;
     private final UserRepository userRepository;
     private final SlotRepository slotRepository;
+    private final OfflineBookingRepository offlineBookingRepository;
     private final ImageService imageService;
 
-    public OwnerService(CafeOwnerRepository cor, PasswordEncoder pe, CafeRepository cr, PCRepository pcr, UserBookingRepository ubr, UserRepository ur, SlotRepository slotRepository, ImageService is) {
+    public OwnerService(CafeOwnerRepository cor, PasswordEncoder pe, CafeRepository cr, PCRepository pcr, UserBookingRepository ubr, UserRepository ur, SlotRepository slotRepository, OfflineBookingRepository offlineBookingRepository, ImageService is) {
         this.cafeOwnerRepository = cor;
         this.passwordEncoder = pe;
         this.cafeRepository = cr;
@@ -35,6 +36,7 @@ public class OwnerService {
         this.userBookingRepository = ubr;
         this.userRepository = ur;
         this.slotRepository = slotRepository;
+        this.offlineBookingRepository = offlineBookingRepository;
         this.imageService = is;
     }
 
@@ -77,6 +79,7 @@ public class OwnerService {
         cafe.setCloseTime(cad.getCloseTime());
         cafe.setHourlyRate(cad.getHourlyRate());
         cafe.setCafeImage(fileURL);
+        cafe.setAmenities(parseAmenities(cad.getAmenitiesInput()));
         cafe.setOwner(owner);
         cafeRepository.save(cafe);
     }
@@ -91,6 +94,8 @@ public class OwnerService {
         dto.setCloseTime(cafe.getCloseTime());
         dto.setHourlyRate(cafe.getHourlyRate());
         dto.setCafeImage(cafe.getCafeImage());
+        dto.setAmenities(cafe.getAmenities());
+        dto.setAmenitiesInput(String.join(", ", cafe.getAmenities()));
         return dto;
     }
 
@@ -102,6 +107,7 @@ public class OwnerService {
         cafe.setOpenTime(dto.getOpenTime());
         cafe.setCloseTime(dto.getCloseTime());
         cafe.setHourlyRate(dto.getHourlyRate());
+        cafe.setAmenities(parseAmenities(dto.getAmenitiesInput()));
 
         if (dto.getCafeImageFile() != null && !dto.getCafeImageFile().isEmpty()) {
             String fileURL = imageService.uploadImage(dto.getCafeImageFile(), UUID.randomUUID().toString());
@@ -143,6 +149,7 @@ public class OwnerService {
             dto.setCloseTime(cafe.getCloseTime());
             dto.setHourlyRate(cafe.getHourlyRate());
             dto.setCafeImage(cafe.getCafeImage());
+            dto.setAmenities(cafe.getAmenities());
             // Calculate available PCs
             long availableCount = cafe.getPcs().stream()
                     .map(pc -> getAccuratePcAvailability(pc.getId()))
@@ -173,6 +180,7 @@ public class OwnerService {
                     .count();
             dto.setAvailablePcs((int) availableCount);
             dto.setCafeImage(cafe.getCafeImage());
+            dto.setAmenities(cafe.getAmenities());
             return dto;
         }).collect(Collectors.toList());
     }
@@ -188,6 +196,7 @@ public class OwnerService {
         dto.setCloseTime(cafe.getCloseTime());
         dto.setHourlyRate(cafe.getHourlyRate());
         dto.setCafeImage(cafe.getCafeImage());
+        dto.setAmenities(cafe.getAmenities());
         return dto;
     }
 
@@ -394,6 +403,13 @@ public class OwnerService {
                             slot.getId(), selectedDate, UserBooking.BookingStatus.BOOKED);
                     if (isBookedForSelectedDate) {
                         details.setStatus("booked");
+                        userBookingRepository.findBySlotIdAndBookingDateAndStatusInOrderByIdDesc(
+                                        slot.getId(),
+                                        selectedDate,
+                                        List.of(UserBooking.BookingStatus.BOOKED, UserBooking.BookingStatus.NO_SHOW))
+                                .stream()
+                                .findFirst()
+                                .ifPresent(booking -> details.setBookingId(booking.getId()));
                     } else if (selectedDate.equals(LocalDate.now()) && slot.getEndTime().isBefore(LocalTime.now())) {
                         details.setStatus("past");
                     } else {
@@ -403,6 +419,28 @@ public class OwnerService {
                 })
                 .sorted(Comparator.comparing(SlotDetails::getStartTime))
                 .collect(Collectors.toList());
+    }
+
+    public BookingReceiptDto getBookingReceiptForOwner(Long bookingId) {
+        UserBooking booking = userBookingRepository.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
+
+        getOwnedCafe(booking.getPc().getCafe().getId());
+
+        BookingReceiptDto dto = new BookingReceiptDto();
+        dto.setBookingId(booking.getId());
+        dto.setCafeName(booking.getPc().getCafe().getName());
+        dto.setSeatNumber(booking.getPc().getSeatNumber());
+        dto.setBookingDate(booking.getBookingDate());
+        dto.setStartTime(booking.getStartTime());
+        dto.setEndTime(booking.getEndTime());
+        dto.setStatus(booking.getStatus().name());
+        if (booking.getUser() != null) {
+            dto.setCustomerName(booking.getUser().getName());
+            dto.setCustomerEmail(booking.getUser().getEmail());
+            dto.setCustomerPhone(booking.getUser().getPhone());
+        }
+        return dto;
     }
 
     @Transactional
@@ -432,8 +470,11 @@ public class OwnerService {
         Slot slot = slotRepository.findById(slotId)
                 .orElseThrow(() -> new RuntimeException("PC not found with id: " + slotId));
 
-        if (userBookingRepository.existsBySlotId(slotId)) {
-            throw new RuntimeException("Cannot edit a slot that already has booking history.");
+        if (userBookingRepository.existsBySlotIdAndStatusIn(
+                slotId,
+                List.of(UserBooking.BookingStatus.BOOKED, UserBooking.BookingStatus.PENDING)
+        )) {
+            throw new RuntimeException("Cannot edit a slot that has an active booking. Mark it as no-show first if the user did not arrive.");
         }
 
         slot.setStartTime(startTime);
@@ -443,11 +484,48 @@ public class OwnerService {
 
     @Transactional
     public void deleteSlot(Long slotId) {
-        if (userBookingRepository.existsBySlotId(slotId)) {
-            throw new RuntimeException("Cannot delete a slot that already has booking history.");
+        if (userBookingRepository.existsBySlotIdAndStatusIn(
+                slotId,
+                List.of(UserBooking.BookingStatus.BOOKED, UserBooking.BookingStatus.PENDING)
+        )) {
+            throw new RuntimeException("Cannot delete a slot that has an active booking. Mark it as no-show first if the user did not arrive.");
         }
 
         slotRepository.deleteById(slotId);
+    }
+
+    @Transactional
+    public void markNoShowAndAddWalkIn(Long slotId, LocalDate bookingDate) {
+        Slot slot = slotRepository.findById(slotId)
+                .orElseThrow(() -> new RuntimeException("Slot not found with id: " + slotId));
+
+        LocalDate selectedDate = bookingDate != null ? bookingDate : LocalDate.now();
+        UserBooking booking = userBookingRepository.findBySlotIdAndBookingDateAndStatus(
+                        slotId, selectedDate, UserBooking.BookingStatus.BOOKED)
+                .orElseThrow(() -> new RuntimeException("No confirmed booking found for this slot on the selected date."));
+
+        booking.setStatus(UserBooking.BookingStatus.NO_SHOW);
+        userBookingRepository.save(booking);
+
+        OfflineBooking walkIn = new OfflineBooking();
+        walkIn.setCafe(slot.getPc().getCafe());
+        walkIn.setBookingDate(selectedDate);
+        walkIn.setTimeSlot(slot.getStartTime().getHour());
+        walkIn.setCustomerCount(1);
+        walkIn.setNotes("Walk-in replacement after no-show for PC " + slot.getPc().getSeatNumber());
+        offlineBookingRepository.save(walkIn);
+    }
+
+    private List<String> parseAmenities(String amenitiesInput) {
+        if (amenitiesInput == null || amenitiesInput.isBlank()) {
+            return new ArrayList<>();
+        }
+
+        return Arrays.stream(amenitiesInput.split(","))
+                .map(String::trim)
+                .filter(value -> !value.isBlank())
+                .distinct()
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
 }

@@ -4,11 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${cafe.name} + ' - Details'">Cafe Details</title>
-
-    <!-- Tailwind CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- Tailwind Config -->
     <script>
         tailwind.config = {
             theme: {
@@ -24,7 +20,7 @@
                     animation: {
                         'glow': 'glow 2s ease-in-out infinite alternate',
                         'float': 'float 3s ease-in-out infinite',
-                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite'
                     },
                     keyframes: {
                         glow: {
@@ -40,13 +36,9 @@
             }
         }
     </script>
-
-    <!-- Shared Styles and Scripts -->
     <link rel="stylesheet" th:href="@{'/css/style.css'}">
 </head>
 <body class="bg-dark-bg text-white font-rajdhani overflow-x-hidden">
-
-<!-- Floating Particles -->
 <div class="fixed inset-0 pointer-events-none z-0">
     <div class="particle w-1 h-1" style="left: 10%; animation-delay: 0s;"></div>
     <div class="particle w-2 h-2" style="left: 20%; animation-delay: 1s;"></div>
@@ -59,7 +51,6 @@
     <div class="particle w-1 h-1" style="left: 90%; animation-delay: 2.5s;"></div>
 </div>
 
-<!-- Navigation -->
 <nav class="fixed top-0 w-full bg-dark-secondary/90 backdrop-blur-md border-b border-neon-cyan/20 z-50">
     <div class="container mx-auto px-6 py-4">
         <div class="flex items-center justify-between">
@@ -86,7 +77,6 @@
     </div>
 </nav>
 
-<!-- Cafe Header -->
 <header class="pt-32 pb-16 bg-dark-secondary text-center relative overflow-hidden">
     <div class="absolute inset-0">
         <img th:src="${#strings.isEmpty(cafe.cafeImage) or cafe.cafeImage == '.' ? '/images/cafe1.jpeg' : cafe.cafeImage}" alt="Cafe Image"
@@ -104,54 +94,45 @@
     </div>
 </header>
 
-<!-- Main Content -->
 <main class="container mx-auto px-6 py-12 grid grid-cols-1 lg:grid-cols-3 gap-12">
-    <!-- Left Column: PCs and Reviews -->
     <div class="lg:col-span-2">
-        <!-- PC Availability Section -->
         <section id="pc-availability">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="font-orbitron font-bold text-3xl text-glow text-neon-purple">Gaming Stations</h2>
                 <div class="flex items-center gap-4">
                     <span class="font-semibold">Sort by:</span>
-
                     <button id="sort-by-seat" class="btn-gaming px-4 py-2 rounded-lg text-sm">Seat Number</button>
                     <button id="sort-by-availability" class="btn-secondary px-4 py-2 rounded-lg text-sm">Availability</button>
                 </div>
             </div>
+            <div id="recommendedWindowBanner" class="mb-6 hidden rounded-2xl border border-neon-green/30 bg-gradient-to-r from-neon-green/10 via-dark-secondary to-neon-cyan/10 p-4">
+                <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                    <div>
+                        <p class="text-xs uppercase tracking-[0.3em] text-neon-green">Recommended Time Window</p>
+                        <h3 id="recommendedWindowTitle" class="mt-1 font-orbitron text-2xl text-white">Best time loading...</h3>
+                        <p id="recommendedWindowText" class="mt-1 text-sm text-gray-300">Checking the lowest crowd and best pricing window for you.</p>
+                    </div>
+                    <div class="rounded-xl border border-neon-cyan/20 bg-dark-bg px-4 py-3 text-right">
+                        <p class="text-xs uppercase tracking-[0.25em] text-gray-400">Expected Price</p>
+                        <p id="recommendedWindowPrice" class="mt-1 font-orbitron text-2xl text-neon-cyan">Rs 0</p>
+                    </div>
+                </div>
+                <div id="recommendedWindowCards" class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3"></div>
+            </div>
             <div id="pcGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- PC Card -->
-                <!-- <div th:each="pc : ${pcs}"
-                     class="pc-card rounded-xl p-4 glass-effect border-2 flex flex-col justify-between transition-all duration-300"
-                     th:classappend="${pc.available == 'Available' ? 'border-neon-green/30 hover:border-neon-green' : (pc.available == 'Busy' ? 'border-yellow-400/30 hover:border-yellow-400' : 'border-red-500/30 hover:border-red-500')}"
-                     th:attr="data-seat=${pc.seatNumber}, data-spec=${pc.configuration}"> -->
-
-                     <div th:each="pc : ${pcs}"
-                        class="pc-card rounded-xl p-4 glass-effect border-2 flex flex-col justify-between transition-all duration-300 border-neon-green/30 hover:border-neon-green"
-                        th:attr="data-seat=${pc.seatNumber}, data-spec=${pc.configuration}">
+                <div th:each="pc : ${pcs}"
+                     class="pc-card rounded-xl p-4 glass-effect border-2 flex flex-col justify-between transition-all duration-300 border-neon-green/30 hover:border-neon-green"
+                     th:attr="data-seat=${pc.seatNumber}, data-spec=${pc.configuration}">
 
                     <div>
                         <div class="flex justify-between items-center mb-2">
                             <h3 class="font-orbitron text-lg font-bold text-neon-cyan" th:text="'Seat ' + ${pc.seatNumber}">Seat #</h3>
-                            <!-- <span class="pc-status px-3 py-1 rounded-full text-xs font-semibold"
-                                  th:text="${pc.available}"
-                                  th:classappend="${pc.available == 'Available' ? 'bg-neon-green/20 text-neon-green' : (pc.available == 'Busy' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-red-500/20 text-red-400')}">
-                            </span> -->
                             <span class="pc-status px-3 py-1 rounded-full text-xs font-semibold bg-neon-green/20 text-neon-green">
                                 Available
                             </span>
                         </div>
                         <p class="text-gray-400 text-sm mb-4" th:text="${pc.configuration}">PC Specs</p>
                     </div>
-
-                    <!-- <div class="mt-auto">
-                        <form th:action="@{/allSlots/pc/{pcId}(pcId=${pc.id})}" method="get" th:if="${pc.available == 'Available'}">
-                            <button type="submit" class="w-full btn-gaming py-2 rounded-lg font-semibold text-sm">Book Now</button>
-                        </form>
-                        <button th:if="${pc.available != 'Available'}" class="w-full bg-gray-600 py-2 rounded-lg font-semibold cursor-not-allowed text-sm" disabled th:text="${pc.available}">
-                            Booked
-                        </button>
-                    </div> -->
 
                     <div class="mt-auto">
                         <form th:action="@{/allSlots/pc/{pcId}(pcId=${pc.id})}" method="get">
@@ -163,7 +144,6 @@
         </section>
     </div>
 
-    <!-- Right Column: About and Amenities -->
     <aside class="lg:col-span-1 space-y-12">
         <section class="rounded-2xl border border-neon-cyan/20 bg-dark-secondary p-6">
             <h3 class="font-orbitron font-bold text-2xl text-glow text-neon-purple mb-4">Smart Session Optimizer</h3>
@@ -205,13 +185,20 @@
                             <div class="text-gray-400">Suggested Session</div>
                             <div id="optDuration" class="mt-1 text-xl font-bold text-white">0 hrs</div>
                         </div>
+                        <div class="rounded-lg bg-dark-secondary p-3">
+                            <div class="text-gray-400">Best Time</div>
+                            <div id="optBestHour" class="mt-1 text-xl font-bold text-neon-cyan">--</div>
+                        </div>
+                        <div class="rounded-lg bg-dark-secondary p-3">
+                            <div class="text-gray-400">Best Price</div>
+                            <div id="optBestPrice" class="mt-1 text-xl font-bold text-neon-green">Rs 0</div>
+                        </div>
                     </div>
                     <p id="optMessage" class="mt-4 text-sm text-gray-300"></p>
                 </div>
             </div>
         </section>
 
-        <!-- About Section -->
         <section>
             <h3 class="font-orbitron font-bold text-2xl text-glow text-neon-purple mb-4">About Us</h3>
             <p class="text-gray-400 leading-relaxed">
@@ -219,26 +206,26 @@
             </p>
         </section>
 
-        <!-- Amenities -->
         <section>
             <h3 class="font-orbitron font-bold text-2xl text-glow text-neon-purple mb-4">Amenities</h3>
-            <div class="grid grid-cols-2 gap-4 text-gray-300">
+            <div class="grid grid-cols-2 gap-4 text-gray-300" th:if="${cafe.amenities != null and !#lists.isEmpty(cafe.amenities)}">
+                <div th:each="amenity : ${cafe.amenities}" class="flex items-center space-x-3">
+                    <span class="text-neon-cyan">✓</span><span th:text="${amenity}">Amenity</span>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4 text-gray-300" th:if="${cafe.amenities == null or #lists.isEmpty(cafe.amenities)}">
                 <div class="flex items-center space-x-3"><span class="text-neon-cyan">✓</span><span>High-Speed Internet</span></div>
                 <div class="flex items-center space-x-3"><span class="text-neon-cyan">✓</span><span>Comfortable Seating</span></div>
                 <div class="flex items-center space-x-3"><span class="text-neon-cyan">✓</span><span>Snacks & Drinks</span></div>
                 <div class="flex items-center space-x-3"><span class="text-neon-cyan">✓</span><span>Air Conditioning</span></div>
-                <div class="flex items-center space-x-3"><span class="text-neon-cyan">✓</span><span>Regular Tournaments</span></div>
-                <div class="flex items-center space-x-3"><span class="text-neon-cyan">✓</span><span>Friendly Staff</span></div>
             </div>
         </section>
     </aside>
 </main>
 
-<!-- Footer -->
 <footer class="bg-dark-secondary border-t border-neon-cyan/20 py-12">
     <div class="container mx-auto px-6">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <!-- Logo and Description -->
             <div class="col-span-1 md:col-span-2">
                 <div class="flex items-center space-x-2 mb-4">
                     <div class="w-10 h-10 bg-gradient-to-r from-neon-purple to-neon-cyan rounded-lg flex items-center justify-center animate-glow">
@@ -250,49 +237,17 @@
                     The ultimate gaming destination where players come together to compete, connect, and conquer.
                     Experience high-performance gaming with seamless booking and community events.
                 </p>
-
-                <!-- Contact Details -->
-                <div class="space-y-2 mb-6">
-                    <div class="flex items-center space-x-2">
-                        <span class="text-neon-cyan">📍</span>
-                        <span class="text-gray-400">123 Gaming Street, Tech City, TC 12345</span>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <span class="text-neon-cyan">📞</span>
-                        <span class="text-gray-400">+1 (555) 123-GAME</span>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <span class="text-neon-cyan">✉️</span>
-                        <span class="text-gray-400">info@gamehub.com</span>
-                    </div>
-                </div>
-
-                <!-- Social Media Links -->
-                <div class="flex space-x-4">
-                    <a href="#" class="w-10 h-10 bg-dark-tertiary hover:bg-purple-600 hover:text-white transition-all duration-300 rounded-lg flex items-center justify-center">
-                        💬
-                    </a>
-                    <a href="#" class="w-10 h-10 bg-dark-tertiary hover:bg-pink-600 hover:text-white transition-all duration-300 rounded-lg flex items-center justify-center">
-                        📷
-                    </a>
-                    <a href="#" class="w-10 h-10 bg-dark-tertiary hover:bg-purple-500 hover:text-white transition-all duration-300 rounded-lg flex items-center justify-center">
-                        📺
-                    </a>
-                </div>
             </div>
 
-            <!-- Quick Links -->
             <div>
                 <h3 class="font-orbitron font-bold text-lg mb-4 text-neon-cyan">Quick Links</h3>
                 <ul class="space-y-2">
                     <li><a href="/landing#gamers" class="text-gray-400 hover:text-neon-cyan transition-colors duration-300">For Gamers</a></li>
                     <li><a href="/landing#owners" class="text-gray-400 hover:text-neon-cyan transition-colors duration-300">For Owners</a></li>
                     <li><a href="/landing#analytics" class="text-gray-400 hover:text-neon-cyan transition-colors duration-300">Analytics</a></li>
-                    <li><a href="#" class="text-gray-400 hover:text-neon-cyan transition-colors duration-300">Support</a></li>
                 </ul>
             </div>
 
-            <!-- Legal -->
             <div>
                 <h3 class="font-orbitron font-bold text-lg mb-4 text-neon-cyan">Legal</h3>
                 <ul class="space-y-2">

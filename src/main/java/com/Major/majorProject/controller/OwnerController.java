@@ -4,6 +4,7 @@ import com.Major.majorProject.dto.CafeAdditionDto;
 import com.Major.majorProject.dto.OfflineBookingDto;
 import com.Major.majorProject.dto.PCDto;
 import com.Major.majorProject.dto.PricingRuleDto;
+import com.Major.majorProject.dto.BookingReceiptDto;
 import com.Major.majorProject.dto.SlotDetails;
 import com.Major.majorProject.dto.SlotDto;
 import com.Major.majorProject.entity.OfflineBooking;
@@ -14,6 +15,7 @@ import com.Major.majorProject.service.PricingRuleService;
 import org.springframework.stereotype.Controller; // Changed from RestController
 import org.springframework.ui.Model; // Added Model
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -130,6 +132,8 @@ public class OwnerController {
     @GetMapping("/slots/{pcId}")
     public String showSlotList(@PathVariable("pcId") long pcId,
                                @RequestParam(value = "date", required = false) LocalDate date,
+                               @RequestParam(value = "error", required = false) String error,
+                               @RequestParam(value = "success", required = false) String success,
                                Model model) {
         LocalDate selectedDate = date != null ? date : LocalDate.now();
         List<SlotDetails> slots = ownerService.getSlotsForPC(pcId, selectedDate);
@@ -144,6 +148,8 @@ public class OwnerController {
         } else {
             model.addAttribute("cafeId", 0);
         }
+        model.addAttribute("errorMessage", error);
+        model.addAttribute("successMessage", success);
         return "owner/slotList";
     }
 
@@ -165,21 +171,46 @@ public class OwnerController {
     public String editSlot(@PathVariable("pcId") long pcId,
                            @PathVariable("slotId") long slotId,
                            @RequestParam("startTime") LocalTime startTime,
-                           @RequestParam(value = "date", required = false) LocalDate date) {
-        ownerService.updateSlot(slotId, startTime);
-        return date == null
-                ? "redirect:/owner/slots/" + pcId
-                : "redirect:/owner/slots/" + pcId + "?date=" + date;
+                           @RequestParam(value = "date", required = false) LocalDate date,
+                           RedirectAttributes redirectAttributes) {
+        try {
+            ownerService.updateSlot(slotId, startTime);
+            redirectAttributes.addAttribute("success", "Slot updated successfully.");
+        } catch (RuntimeException ex) {
+            redirectAttributes.addAttribute("error", ex.getMessage());
+        }
+        redirectAttributes.addAttribute("date", date != null ? date : LocalDate.now());
+        return "redirect:/owner/slots/" + pcId;
     }
 
     @PostMapping("/slots/{pcId}/delete/{slotId}")
     public String deleteSlot(@PathVariable("pcId") long pcId,
                              @PathVariable("slotId") long slotId,
-                             @RequestParam(value = "date", required = false) LocalDate date) {
-        ownerService.deleteSlot(slotId);
-        return date == null
-                ? "redirect:/owner/slots/" + pcId
-                : "redirect:/owner/slots/" + pcId + "?date=" + date;
+                             @RequestParam(value = "date", required = false) LocalDate date,
+                             RedirectAttributes redirectAttributes) {
+        try {
+            ownerService.deleteSlot(slotId);
+            redirectAttributes.addAttribute("success", "Slot deleted successfully.");
+        } catch (RuntimeException ex) {
+            redirectAttributes.addAttribute("error", ex.getMessage());
+        }
+        redirectAttributes.addAttribute("date", date != null ? date : LocalDate.now());
+        return "redirect:/owner/slots/" + pcId;
+    }
+
+    @PostMapping("/slots/{pcId}/no-show/{slotId}")
+    public String markNoShowAndTakeWalkIn(@PathVariable("pcId") long pcId,
+                                          @PathVariable("slotId") long slotId,
+                                          @RequestParam(value = "date", required = false) LocalDate date,
+                                          RedirectAttributes redirectAttributes) {
+        try {
+            ownerService.markNoShowAndAddWalkIn(slotId, date);
+            redirectAttributes.addAttribute("success", "Booking marked as no-show and one walk-in entry was added for this slot hour.");
+        } catch (RuntimeException ex) {
+            redirectAttributes.addAttribute("error", ex.getMessage());
+        }
+        redirectAttributes.addAttribute("date", date != null ? date : LocalDate.now());
+        return "redirect:/owner/slots/" + pcId;
     }
 
     @GetMapping("/analytics/popular-games/{cafeId}")
@@ -208,6 +239,13 @@ public class OwnerController {
         model.addAttribute("cafeId", cafeId);
         // This returns the SAME analytics page, which now contains both charts.
         return "owner/analytics";
+    }
+
+    @GetMapping("/bookings/{bookingId}/receipt")
+    public String viewBookingReceipt(@PathVariable("bookingId") long bookingId, Model model) {
+        BookingReceiptDto receipt = ownerService.getBookingReceiptForOwner(bookingId);
+        model.addAttribute("receipt", receipt);
+        return "owner/bookingReceipt";
     }
 
     @GetMapping("/analytics/monthly-bookings")

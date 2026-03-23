@@ -16,26 +16,9 @@
     </script>
     <link rel="stylesheet" th:href="@{'/css/style.css'}">
 </head>
-<body class="bg-dark-bg text-white flex pt-24">
+<body class="bg-dark-bg text-white pt-24">
 <div th:replace="~{fragments/owner-navbar :: ownerNavbar('cafes')}"></div>
-<aside class="w-64 bg-dark-secondary h-screen sticky top-0 border-r border-neon-cyan/20 flex flex-col">
-    <div class="p-6 border-b border-neon-cyan/20"><h1 class="font-orbitron font-bold text-xl text-neon-cyan text-center">OWNER PANEL</h1></div>
-    <nav class="p-4 space-y-2 flex-grow">
-        <a th:href="@{/owner/}" class="block py-3 px-4 rounded-lg hover:bg-neon-cyan/10 sidebar-link font-semibold">Dashboard</a>
-        <a th:href="@{/owner/cafes}" class="block py-3 px-4 rounded-lg sidebar-link active font-semibold">Manage Cafes</a>
-    </nav>
-    <div class="p-4 border-t border-neon-cyan/20">
-        <form th:action="@{/logout}" method="post">
-            <button type="submit" class="w-full text-center py-3 px-4 rounded-lg bg-red-500/20 hover:bg-red-500/40 text-red-300 font-semibold">Logout</button>
-        </form>
-    </div>
-</aside>
-<main class="flex-1 p-8">
-    <div class="mb-6 flex flex-wrap gap-3 rounded-xl border border-neon-cyan/20 bg-dark-secondary p-4">
-        <a th:href="@{/owner/}" class="rounded-lg bg-dark-bg px-4 py-2 font-semibold text-gray-200 hover:text-neon-cyan">Dashboard</a>
-        <a th:href="@{/owner/cafes}" class="rounded-lg bg-dark-bg px-4 py-2 font-semibold text-gray-200 hover:text-neon-cyan">Manage Cafes</a>
-        <a th:href="@{/owner/editCafe/{cafeId}(cafeId=${cafeId})}" class="rounded-lg bg-neon-cyan/10 px-4 py-2 font-semibold text-neon-cyan">Edit Cafe</a>
-    </div>
+<main class="p-8">
     <div class="mb-8 flex items-center justify-between">
         <h1 class="font-orbitron text-4xl font-bold text-neon-purple">Edit Cafe</h1>
         <a th:href="@{/owner/cafes}" class="btn-gaming rounded-lg px-6 py-3 font-semibold text-dark-bg">Back</a>
@@ -54,6 +37,11 @@
         <div>
             <label for="address" class="block text-gray-300">Address</label>
             <input type="text" id="address" th:field="*{address}" class="mt-2 w-full rounded-lg border border-neon-cyan/30 bg-dark-bg px-4 py-2" required>
+        </div>
+        <div>
+            <label for="amenitiesInput" class="block text-gray-300">Amenities</label>
+            <textarea id="amenitiesInput" th:field="*{amenitiesInput}" rows="3" class="mt-2 w-full rounded-lg border border-neon-cyan/30 bg-dark-bg px-4 py-2" placeholder="High-Speed Internet, Snacks & Drinks, Air Conditioning"></textarea>
+            <p class="mt-2 text-sm text-gray-400">Add or remove amenities by editing the comma-separated list.</p>
         </div>
         <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>

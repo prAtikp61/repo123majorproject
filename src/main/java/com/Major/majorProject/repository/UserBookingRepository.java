@@ -13,6 +13,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,9 +32,32 @@ public interface UserBookingRepository extends JpaRepository<UserBooking, Long> 
 
     boolean existsBySlotIdAndBookingDateAndStatus(Long slotId, LocalDate bookingDate, BookingStatus status);
 
+    boolean existsBySlotIdAndStatusIn(Long slotId, List<BookingStatus> statuses);
+
+    Optional<UserBooking> findBySlotIdAndBookingDateAndStatus(Long slotId, LocalDate bookingDate, BookingStatus status);
+
+    List<UserBooking> findBySlotIdAndBookingDateAndStatusInOrderByIdDesc(Long slotId, LocalDate bookingDate, List<BookingStatus> statuses);
+
     boolean existsByPcCafeId(Long cafeId);
 
     List<UserBooking> findByPcCafeIdAndBookingDateAndStatusIn(Long cafeId, LocalDate bookingDate, List<BookingStatus> statuses);
+
+    @Query("""
+            SELECT COUNT(b)
+            FROM UserBooking b
+            WHERE b.pc.cafe.id = :cafeId
+              AND b.bookingDate = :bookingDate
+              AND (
+                    b.status = com.Major.majorProject.entity.UserBooking$BookingStatus.BOOKED
+                    OR (b.status = com.Major.majorProject.entity.UserBooking$BookingStatus.PENDING AND b.expirationTime > :now)
+                  )
+              AND b.startTime <= :slotTime
+              AND b.endTime > :slotTime
+            """)
+    long countActiveDemandForHour(@Param("cafeId") Long cafeId,
+                                  @Param("bookingDate") LocalDate bookingDate,
+                                  @Param("slotTime") LocalTime slotTime,
+                                  @Param("now") LocalDateTime now);
 
     List<UserBooking> findBySlotPcIdAndBookingDateAndStatusIn(Long pcId, LocalDate bookingDate, List<BookingStatus> statuses);
 
