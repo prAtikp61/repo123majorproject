@@ -83,6 +83,11 @@
 </aside>
 
 <main class="flex-1 p-8">
+    <div class="mb-6 flex flex-wrap gap-3 rounded-xl border border-neon-cyan/20 bg-dark-secondary p-4">
+        <a th:href="@{/owner/}" class="rounded-lg bg-neon-cyan/10 px-4 py-2 font-semibold text-neon-cyan">Dashboard</a>
+        <a th:href="@{/owner/cafes}" class="rounded-lg bg-dark-bg px-4 py-2 font-semibold text-gray-200 hover:text-neon-cyan">Manage Cafes</a>
+        <a th:href="@{/owner/addCafe}" class="rounded-lg bg-dark-bg px-4 py-2 font-semibold text-gray-200 hover:text-neon-cyan">Add Cafe</a>
+    </div>
     <h1 class="font-orbitron text-4xl font-bold text-neon-purple mb-8">Dashboard</h1>
     <div class="mb-8">
         <h2 class="font-orbitron text-2xl font-bold text-neon-cyan mb-4">Your Cafes</h2>
@@ -95,6 +100,7 @@
                 <h3 class="text-xl font-bold font-orbitron text-neon-cyan" th:text="${cafe.name}">Cafe Name</h3>
                 <p class="text-gray-400" th:text="${cafe.address}">Cafe Address</p>
                 <a th:href="@{/owner/PCs/{cafeId}(cafeId=${cafe.id})}" class="text-neon-green hover:underline mt-4 inline-block font-semibold">Manage PCs &raquo;</a>
+                <a th:href="@{/owner/pricing/{cafeId}(cafeId=${cafe.id})}" class="text-yellow-300 hover:underline mt-2 inline-block font-semibold">Pricing & Walk-ins &raquo;</a>
             </div>
         </div>
     </div>

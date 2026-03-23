@@ -47,10 +47,26 @@ public class OwnerService {
         cafeOwnerRepository.save(owner);
     }
 
-    public void cafeAddition(CafeAdditionDto cad) {
+    private CafeOwner getCurrentOwner() {
         String ownerEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        CafeOwner owner = cafeOwnerRepository.findByEmail(ownerEmail)
+        return cafeOwnerRepository.findByEmail(ownerEmail)
                 .orElseThrow(() -> new RuntimeException("Owner not found"));
+    }
+
+    private Cafe getOwnedCafe(long cafeId) {
+        CafeOwner owner = getCurrentOwner();
+        Cafe cafe = cafeRepository.findById(cafeId)
+                .orElseThrow(() -> new RuntimeException("Cafe not found with ID: " + cafeId));
+
+        if (cafe.getOwner() == null || !cafe.getOwner().getId().equals(owner.getId())) {
+            throw new RuntimeException("You do not have access to this cafe.");
+        }
+
+        return cafe;
+    }
+
+    public void cafeAddition(CafeAdditionDto cad) {
+        CafeOwner owner = getCurrentOwner();
 
         String filename = UUID.randomUUID().toString();
         String fileURL = imageService.uploadImage(cad.getCafeImageFile(), filename);
@@ -65,15 +81,54 @@ public class OwnerService {
         cafeRepository.save(cafe);
     }
 
+    public CafeAdditionDto getCafeForEdit(long cafeId) {
+        Cafe cafe = getOwnedCafe(cafeId);
+        CafeAdditionDto dto = new CafeAdditionDto();
+        dto.setId(cafe.getId());
+        dto.setName(cafe.getName());
+        dto.setAddress(cafe.getAddress());
+        dto.setOpenTime(cafe.getOpenTime());
+        dto.setCloseTime(cafe.getCloseTime());
+        dto.setHourlyRate(cafe.getHourlyRate());
+        dto.setCafeImage(cafe.getCafeImage());
+        return dto;
+    }
+
+    @Transactional
+    public void updateCafe(long cafeId, CafeAdditionDto dto) {
+        Cafe cafe = getOwnedCafe(cafeId);
+        cafe.setName(dto.getName());
+        cafe.setAddress(dto.getAddress());
+        cafe.setOpenTime(dto.getOpenTime());
+        cafe.setCloseTime(dto.getCloseTime());
+        cafe.setHourlyRate(dto.getHourlyRate());
+
+        if (dto.getCafeImageFile() != null && !dto.getCafeImageFile().isEmpty()) {
+            String fileURL = imageService.uploadImage(dto.getCafeImageFile(), UUID.randomUUID().toString());
+            if (fileURL != null && !fileURL.isBlank()) {
+                cafe.setCafeImage(fileURL);
+            }
+        }
+
+        cafeRepository.save(cafe);
+    }
+
+    @Transactional
+    public void deleteCafe(long cafeId) {
+        Cafe cafe = getOwnedCafe(cafeId);
+        if (userBookingRepository.existsByPcCafeId(cafeId)) {
+            throw new RuntimeException("Cannot delete a cafe that has booking history.");
+        }
+        cafeRepository.delete(cafe);
+    }
+
     public CafeOwner findByEmail(String email) {
         return cafeOwnerRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Owner not found with email: " + email));
     }
 
     public List<CafeAdditionDto> getAllCafeOfOwner() {
-        String ownerEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        CafeOwner owner = cafeOwnerRepository.findByEmail(ownerEmail)
-                .orElseThrow(() -> new RuntimeException("Owner not found"));
+        CafeOwner owner = getCurrentOwner();
 
         if (owner.getCafes() == null) {
             return Collections.emptyList();
@@ -90,7 +145,7 @@ public class OwnerService {
             dto.setCafeImage(cafe.getCafeImage());
             // Calculate available PCs
             long availableCount = cafe.getPcs().stream()
-                    .map(pc -> getPcAvailability(pc.getId()))
+                    .map(pc -> getAccuratePcAvailability(pc.getId()))
                     .filter(status -> status.equals("Available"))
                     .count();
             dto.setAvailablePcs((int) availableCount);
@@ -113,7 +168,7 @@ public class OwnerService {
             dto.setCloseTime(cafe.getCloseTime());
             dto.setHourlyRate(cafe.getHourlyRate());
             long availableCount = cafe.getPcs().stream()
-                    .map(pc -> getPcAvailability(pc.getId()))
+                    .map(pc -> getAccuratePcAvailability(pc.getId()))
                     .filter(status -> status.equals("Available"))
                     .count();
             dto.setAvailablePcs((int) availableCount);
@@ -317,7 +372,7 @@ public class OwnerService {
         return pcRepository.findById(pcId).orElse(null);
     }
 
-    public List<SlotDetails> getSlotsForPC(long pcId) {
+    public List<SlotDetails> getSlotsForPC(long pcId, LocalDate selectedDate) {
         List<Slot> savedSlots = slotRepository.findByPcId(pcId);
 
         if (savedSlots.isEmpty()) {
@@ -335,12 +390,11 @@ public class OwnerService {
                     details.setEndTime(slot.getEndTime());
                     details.setCafeId(cafeId);
 
-                    // CORRECTED STATUS LOGIC:
-                    // The status now only depends on whether the slot is booked
-                    // or if its end time is before the current time today.
-                    if (slot.isBooked()) {
+                    boolean isBookedForSelectedDate = userBookingRepository.existsBySlotIdAndBookingDateAndStatus(
+                            slot.getId(), selectedDate, UserBooking.BookingStatus.BOOKED);
+                    if (isBookedForSelectedDate) {
                         details.setStatus("booked");
-                    } else if (slot.getEndTime().isBefore(LocalTime.now())) {
+                    } else if (selectedDate.equals(LocalDate.now()) && slot.getEndTime().isBefore(LocalTime.now())) {
                         details.setStatus("past");
                     } else {
                         details.setStatus("open");
@@ -371,6 +425,29 @@ public class OwnerService {
 
             slotRepository.save(slot);
         }
+    }
+
+    @Transactional
+    public void updateSlot(Long slotId, LocalTime startTime) {
+        Slot slot = slotRepository.findById(slotId)
+                .orElseThrow(() -> new RuntimeException("PC not found with id: " + slotId));
+
+        if (userBookingRepository.existsBySlotId(slotId)) {
+            throw new RuntimeException("Cannot edit a slot that already has booking history.");
+        }
+
+        slot.setStartTime(startTime);
+        slot.setEndTime(startTime.plusHours(1));
+        slotRepository.save(slot);
+    }
+
+    @Transactional
+    public void deleteSlot(Long slotId) {
+        if (userBookingRepository.existsBySlotId(slotId)) {
+            throw new RuntimeException("Cannot delete a slot that already has booking history.");
+        }
+
+        slotRepository.deleteById(slotId);
     }
 
 }
